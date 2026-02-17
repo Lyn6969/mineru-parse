@@ -1,0 +1,22 @@
+startup-begin = Mineru Parse loading
+startup-finish = Mineru Parse ready
+menuitem-root = Mineru
+menuitem-parse = Mineru: Parse PDF to Note
+menuitem-parse-force = Mineru: Force Re-parse
+error-no-selection = Please select an item first
+error-no-pdf = No PDF attachment found
+error-no-token = Please set Token in preferences
+error-better-notes-missing = Better Notes not found. Please install it first
+status-uploading = Uploading PDF
+status-cache-hit = Cache hit. Importing
+status-queued = Task queued
+status-running = Parsing
+status-running-progress = Parsing ({ $current }/{ $total })
+status-converting = Converting
+status-downloading = Downloading result
+status-importing = Writing note
+status-reading-images = Reading images
+status-importing-images = Importing images
+status-success = Done. Note created
+status-images-pending =
+    Images not imported ({ $count })

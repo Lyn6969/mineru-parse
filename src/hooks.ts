@@ -1,0 +1,75 @@
+import { registerPrefsScripts } from "./modules/preferenceScript";
+import { registerPrefsWindow } from "./modules/preferenceWindow";
+import { registerItemMenu } from "./modules/menu";
+import { parseSelectedItem } from "./modules/parse";
+import { getString, initLocale } from "./utils/locale";
+import { createZToolkit } from "./utils/ztoolkit";
+
+async function onStartup() {
+  await Promise.all([
+    Zotero.initializationPromise,
+    Zotero.unlockPromise,
+    Zotero.uiReadyPromise,
+  ]);
+
+  initLocale();
+  registerPrefsWindow();
+
+  await Promise.all(
+    Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
+  );
+
+  addon.data.initialized = true;
+}
+
+async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
+  addon.data.ztoolkit = createZToolkit();
+
+  const popupWin = new ztoolkit.ProgressWindow(addon.data.config.addonName, {
+    closeOnClick: true,
+    closeTime: 4000,
+  })
+    .createLine({
+      text: getString("startup-begin"),
+      type: "default",
+      progress: 0,
+    })
+    .show();
+
+  registerItemMenu(win);
+
+  popupWin.changeLine({
+    progress: 100,
+    text: getString("startup-finish"),
+  });
+}
+
+async function onMainWindowUnload(_win: Window): Promise<void> {
+  ztoolkit.unregisterAll();
+}
+
+function onShutdown(): void {
+  ztoolkit.unregisterAll();
+  addon.data.alive = false;
+  // @ts-expect-error - Plugin instance is not typed
+  delete Zotero[addon.data.config.addonInstance];
+}
+
+async function onPrefsEvent(type: string, data: { [key: string]: any }) {
+  if (type === "load") {
+    registerPrefsScripts(data.window);
+  }
+}
+
+async function onParseSelectedItem(options?: { force?: boolean }) {
+  await parseSelectedItem(options);
+}
+
+export default {
+  onStartup,
+  onShutdown,
+  onMainWindowLoad,
+  onMainWindowUnload,
+  onPrefsEvent,
+  onParseSelectedItem,
+};

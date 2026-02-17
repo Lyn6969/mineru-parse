@@ -1,0 +1,22 @@
+startup-begin = Mineru Parse 正在加载
+startup-finish = Mineru Parse 已就绪
+menuitem-root = Mineru
+menuitem-parse = Mineru：解析 PDF 到笔记
+menuitem-parse-force = Mineru：强制重新解析
+error-no-selection = 请先选中一个条目
+error-no-pdf = 未找到可解析的 PDF 附件
+error-no-token = 请先在设置中填写 Token
+error-better-notes-missing = 未检测到 Better Notes 插件，请先安装
+status-uploading = 正在上传 PDF
+status-cache-hit = 命中缓存，直接导入
+status-queued = 任务排队中
+status-running = 正在解析
+status-running-progress = 正在解析（{ $current }/{ $total }）
+status-converting = 正在转换格式
+status-downloading = 正在下载解析结果
+status-importing = 正在写入笔记
+status-reading-images = 正在读取图片
+status-importing-images = 正在导入图片
+status-success = 解析完成，已生成笔记
+status-images-pending =
+    仍有图片未导入（{ $count }）

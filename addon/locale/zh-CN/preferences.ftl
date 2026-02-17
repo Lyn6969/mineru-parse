@@ -1,0 +1,15 @@
+pref-title = Mineru 解析设置
+pref-token = Token
+pref-model-version = 解析模型
+pref-is-ocr =
+    .label = 启用 OCR
+pref-enable-formula =
+    .label = 识别公式
+pref-enable-table =
+    .label = 识别表格
+pref-language = 语言
+pref-page-ranges = 页码范围
+pref-cache-dir = 缓存目录
+pref-poll-interval = 轮询间隔(毫秒)
+pref-poll-timeout = 轮询超时(毫秒)
+pref-help = { $name } Build { $version } { $time }

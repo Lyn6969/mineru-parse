@@ -1,0 +1,15 @@
+pref-title = Mineru Parse Preferences
+pref-token = Token
+pref-model-version = Model Version
+pref-is-ocr =
+    .label = Enable OCR
+pref-enable-formula =
+    .label = Enable Formula
+pref-enable-table =
+    .label = Enable Table
+pref-language = Language
+pref-page-ranges = Page Ranges
+pref-cache-dir = Cache Directory
+pref-poll-interval = Poll Interval (ms)
+pref-poll-timeout = Poll Timeout (ms)
+pref-help = { $name } Build { $version } { $time }

@@ -1,0 +1,66 @@
+{
+  "name": "mineru-parse",
+  "type": "module",
+  "version": "0.1.1",
+  "description": "Mineru PDF 解析到笔记",
+  "config": {
+    "addonName": "Mineru Parse",
+    "addonID": "mineru-parse@local",
+    "addonRef": "MineruParse",
+    "addonInstance": "MineruParse",
+    "prefsPrefix": "extensions.zotero.MineruParse"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/user/mineru-parse.git"
+  },
+  "author": "windingwind",
+  "bugs": {
+    "url": "https://mineru.net"
+  },
+  "homepage": "https://mineru.net",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "start": "zotero-plugin serve",
+    "build": "zotero-plugin build && tsc --noEmit",
+    "lint:check": "prettier --check . && eslint .",
+    "lint:fix": "prettier --write . && eslint . --fix",
+    "release": "zotero-plugin release",
+    "test": "zotero-plugin test",
+    "update-deps": "npm update --save"
+  },
+  "dependencies": {
+    "fflate": "^0.8.2",
+    "path-browserify": "^1.0.1",
+    "zotero-plugin-toolkit": "^5.1.0-beta.13"
+  },
+  "devDependencies": {
+    "@types/chai": "^5.2.3",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^24.10.0",
+    "@types/path-browserify": "^1.0.3",
+    "@zotero-plugin/eslint-config": "^0.6.7",
+    "chai": "^6.2.1",
+    "eslint": "^9.39.2",
+    "mocha": "^11.7.5",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3",
+    "zotero-plugin-scaffold": "^0.8.2",
+    "zotero-types": "^4.1.0-beta.4"
+  },
+  "prettier": {
+    "printWidth": 80,
+    "tabWidth": 2,
+    "endOfLine": "lf",
+    "overrides": [
+      {
+        "files": [
+          "*.xhtml"
+        ],
+        "options": {
+          "htmlWhitespaceSensitivity": "css"
+        }
+      }
+    ]
+  }
+}

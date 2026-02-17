@@ -1,0 +1,10 @@
+pref("__prefsPrefix__.token", "");
+pref("__prefsPrefix__.model_version", "pipeline");
+pref("__prefsPrefix__.is_ocr", false);
+pref("__prefsPrefix__.enable_formula", true);
+pref("__prefsPrefix__.enable_table", true);
+pref("__prefsPrefix__.language", "ch");
+pref("__prefsPrefix__.page_ranges", "");
+pref("__prefsPrefix__.cache_dir", "");
+pref("__prefsPrefix__.poll_interval_ms", 3000);
+pref("__prefsPrefix__.poll_timeout_ms", 900000);
