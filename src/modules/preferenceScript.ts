@@ -103,13 +103,7 @@ function bindPrefEvents() {
   }
 }
 
-const MODIFIER_ONLY_KEYS = new Set([
-  "Control",
-  "Shift",
-  "Alt",
-  "Meta",
-  "OS",
-]);
+const MODIFIER_ONLY_KEYS = new Set(["Control", "Shift", "Alt", "Meta", "OS"]);
 
 function bindShortcutInput() {
   const doc = addon.data.prefs?.window.document;

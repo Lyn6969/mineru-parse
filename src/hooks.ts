@@ -5,7 +5,6 @@ import { parseSelectedItem } from "./modules/parse";
 import { getString, initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
 import { getPref } from "./utils/prefs";
-import { KeyModifier } from "zotero-plugin-toolkit";
 
 async function onStartup() {
   await Promise.all([
