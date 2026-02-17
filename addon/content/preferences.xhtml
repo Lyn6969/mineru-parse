@@ -84,6 +84,45 @@
       data-l10n-id="pref-shortcut-hint"
     />
   </groupbox>
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-ai-group"></html:h2></label>
+    <hbox align="center">
+      <html:label
+        for="mineru-parse-ai-base-url"
+        data-l10n-id="pref-ai-base-url"
+      />
+      <html:input
+        type="text"
+        id="mineru-parse-ai-base-url"
+        placeholder="https://api.openai.com/v1"
+      />
+    </hbox>
+    <hbox align="center">
+      <html:label
+        for="mineru-parse-ai-api-key"
+        data-l10n-id="pref-ai-api-key"
+      />
+      <html:input type="password" id="mineru-parse-ai-api-key" />
+    </hbox>
+    <hbox align="center">
+      <html:label for="mineru-parse-ai-model" data-l10n-id="pref-ai-model" />
+      <html:input type="text" id="mineru-parse-ai-model" placeholder="gpt-4o" />
+    </hbox>
+    <vbox>
+      <html:label
+        for="mineru-parse-ai-system-prompt"
+        data-l10n-id="pref-ai-system-prompt"
+      />
+      <html:textarea
+        id="mineru-parse-ai-system-prompt"
+        rows="5"
+      ></html:textarea>
+      <html:p
+        style="font-size: 0.85em; opacity: 0.7"
+        data-l10n-id="pref-ai-prompt-help"
+      />
+    </vbox>
+  </groupbox>
   <vbox>
     <html:label
       data-l10n-id="pref-help"

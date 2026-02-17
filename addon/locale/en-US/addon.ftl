@@ -20,3 +20,16 @@ status-importing-images = Importing images
 status-success = Done. Note created
 status-images-pending =
     Images not imported ({ $count })
+menu-ai-analyze = AI Analyze
+ai-progress-title = AI Analysis
+ai-progress-requesting = Requesting AI analysis...
+ai-progress-receiving = Receiving AI response...
+ai-progress-saving = Saving analysis result...
+ai-progress-done = AI analysis complete
+ai-error-no-note = This item has no note. Please parse the PDF first
+ai-error-no-apikey = Please configure the AI API key in preferences first
+ai-error-network = Unable to connect to the AI service. Check the API URL
+ai-error-auth = API key is invalid or expired
+ai-error-ratelimit = Request rate limit exceeded. Please try again later
+ai-error-timeout = Request timed out. Please try again later
+ai-error-generic = AI analysis failed

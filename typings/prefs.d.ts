@@ -18,6 +18,10 @@ declare namespace _ZoteroTypes {
       "poll_interval_ms": number;
       "poll_timeout_ms": number;
       "shortcut_parse": string;
+      "ai.baseUrl": string;
+      "ai.apiKey": string;
+      "ai.model": string;
+      "ai.systemPrompt": string;
     };
   }
 }

@@ -9,3 +9,10 @@ pref("__prefsPrefix__.cache_dir", "");
 pref("__prefsPrefix__.poll_interval_ms", 3000);
 pref("__prefsPrefix__.poll_timeout_ms", 900000);
 pref("__prefsPrefix__.shortcut_parse", "control,m");
+pref("__prefsPrefix__.ai.baseUrl", "https://api.openai.com/v1");
+pref("__prefsPrefix__.ai.apiKey", "");
+pref("__prefsPrefix__.ai.model", "gpt-4o");
+pref(
+  "__prefsPrefix__.ai.systemPrompt",
+  "你是一位学术论文分析助手，请对以下笔记内容进行深度解读，包括核心观点提炼、方法论分析、关键发现总结等。",
+);

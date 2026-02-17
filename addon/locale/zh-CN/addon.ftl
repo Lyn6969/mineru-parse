@@ -20,3 +20,16 @@ status-importing-images = 正在导入图片
 status-success = 解析完成，已生成笔记
 status-images-pending =
     仍有图片未导入（{ $count }）
+menu-ai-analyze = AI 解读
+ai-progress-title = AI 解读
+ai-progress-requesting = 正在请求 AI 分析...
+ai-progress-receiving = 正在接收 AI 响应...
+ai-progress-saving = 正在保存解读结果...
+ai-progress-done = AI 解读完成
+ai-error-no-note = 该条目没有笔记，请先解析 PDF
+ai-error-no-apikey = 请先在偏好设置中配置 AI API 密钥
+ai-error-network = 无法连接到 AI 服务，请检查 API 地址
+ai-error-auth = API 密钥无效或已过期
+ai-error-ratelimit = 请求频率过高，请稍后重试
+ai-error-timeout = 请求超时，请稍后重试
+ai-error-generic = AI 解读失败

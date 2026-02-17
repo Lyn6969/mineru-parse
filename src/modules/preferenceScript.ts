@@ -53,6 +53,26 @@ const PREF_BINDINGS: PrefBinding[] = [
     type: "number",
     defaultValue: 900000,
   },
+  {
+    id: "mineru-parse-ai-base-url",
+    key: "ai.baseUrl",
+    type: "text",
+    defaultValue: "https://api.openai.com/v1",
+  },
+  { id: "mineru-parse-ai-api-key", key: "ai.apiKey", type: "text" },
+  {
+    id: "mineru-parse-ai-model",
+    key: "ai.model",
+    type: "text",
+    defaultValue: "gpt-4o",
+  },
+  {
+    id: "mineru-parse-ai-system-prompt",
+    key: "ai.systemPrompt",
+    type: "text",
+    defaultValue:
+      "你是一位学术论文分析助手，请对以下笔记内容进行深度解读，包括核心观点提炼、方法论分析、关键发现总结等。",
+  },
 ];
 
 function bindPrefEvents() {
