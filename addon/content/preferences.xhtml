@@ -64,6 +64,20 @@
       <html:input type="number" id="mineru-parse-poll-timeout" />
     </hbox>
   </groupbox>
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-shortcut-title"></html:h2></label>
+    <hbox align="center">
+      <html:label data-l10n-id="pref-shortcut-label" />
+      <html:input
+        type="text"
+        id="mineru-parse-shortcut"
+        readonly="readonly"
+        style="width: 200px; cursor: pointer;"
+      />
+      <button id="mineru-parse-shortcut-clear" data-l10n-id="pref-shortcut-clear" />
+    </hbox>
+    <html:p style="font-size: 0.85em; opacity: 0.7;" data-l10n-id="pref-shortcut-hint" />
+  </groupbox>
   <vbox>
     <html:label
       data-l10n-id="pref-help"

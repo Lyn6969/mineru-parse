@@ -1,4 +1,5 @@
 import { getPref, setPref } from "../utils/prefs";
+import { KeyModifier } from "zotero-plugin-toolkit";
 
 export async function registerPrefsScripts(_window: Window) {
   if (!addon.data.prefs) {
@@ -7,6 +8,7 @@ export async function registerPrefsScripts(_window: Window) {
     addon.data.prefs.window = _window;
   }
   bindPrefEvents();
+  bindShortcutInput();
 }
 
 type PrefBinding = {
@@ -99,4 +101,47 @@ function bindPrefEvents() {
       });
     }
   }
+}
+
+const MODIFIER_ONLY_KEYS = new Set([
+  "Control",
+  "Shift",
+  "Alt",
+  "Meta",
+  "OS",
+]);
+
+function bindShortcutInput() {
+  const doc = addon.data.prefs?.window.document;
+  if (!doc) return;
+
+  const input = doc.querySelector<HTMLInputElement>("#mineru-parse-shortcut");
+  const clearBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-shortcut-clear",
+  );
+  if (!input) return;
+
+  // 初始化显示
+  const saved = getPref("shortcut_parse") as string;
+  if (saved) {
+    input.value = new KeyModifier(saved).getLocalized();
+  }
+
+  // 录入快捷键
+  input.addEventListener("keydown", (e: KeyboardEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (MODIFIER_ONLY_KEYS.has(e.key)) return;
+
+    const km = new KeyModifier(e);
+    const raw = km.getRaw();
+    setPref("shortcut_parse", raw);
+    input.value = km.getLocalized();
+  });
+
+  // 清除快捷键
+  clearBtn?.addEventListener("command", () => {
+    setPref("shortcut_parse", "");
+    input.value = "";
+  });
 }

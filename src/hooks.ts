@@ -4,6 +4,8 @@ import { registerItemMenu } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import { getString, initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
+import { getPref } from "./utils/prefs";
+import { KeyModifier } from "zotero-plugin-toolkit";
 
 async function onStartup() {
   await Promise.all([
@@ -37,10 +39,22 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
     .show();
 
   registerItemMenu(win);
+  registerShortcut();
 
   popupWin.changeLine({
     progress: 100,
     text: getString("startup-finish"),
+  });
+}
+
+function registerShortcut() {
+  ztoolkit.Keyboard.register((event, { keyboard }) => {
+    const shortcutStr = getPref("shortcut_parse") as string;
+    if (!shortcutStr || !keyboard) return;
+    if (keyboard.equals(shortcutStr)) {
+      event.preventDefault();
+      addon.hooks.onParseSelectedItem();
+    }
   });
 }
 

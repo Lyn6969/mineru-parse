@@ -8,3 +8,4 @@ pref("__prefsPrefix__.page_ranges", "");
 pref("__prefsPrefix__.cache_dir", "");
 pref("__prefsPrefix__.poll_interval_ms", 3000);
 pref("__prefsPrefix__.poll_timeout_ms", 900000);
+pref("__prefsPrefix__.shortcut_parse", "control,m");

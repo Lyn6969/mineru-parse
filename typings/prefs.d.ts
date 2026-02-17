@@ -17,6 +17,7 @@ declare namespace _ZoteroTypes {
       "cache_dir": string;
       "poll_interval_ms": number;
       "poll_timeout_ms": number;
+      "shortcut_parse": string;
     };
   }
 }
