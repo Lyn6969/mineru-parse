@@ -271,13 +271,9 @@ export async function batchImportImages(
 
   // 阶段 2：逐个创建附件（不包事务，与 BN 兼容）
   onProgress?.(0, tasks.length, "importing");
-  const srcToKey = await createAttachments(
-    noteItem,
-    tasks,
-    (done, total) => {
-      onProgress?.(done, total, "importing");
-    },
-  );
+  const srcToKey = await createAttachments(noteItem, tasks, (done, total) => {
+    onProgress?.(done, total, "importing");
+  });
 
   // 统计
   result.srcToKey = srcToKey;

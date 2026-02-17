@@ -131,7 +131,10 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
         })
         .show();
 
-      progress.changeLine({ text: getString("status-importing"), progress: 70 });
+      progress.changeLine({
+        text: getString("status-importing"),
+        progress: 70,
+      });
       const noteItem = await createItemNote(item);
       const importResult = await importMarkdownToNote(
         betterNotes,
@@ -188,7 +191,10 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
       prefs,
     );
 
-    progress.changeLine({ text: getString("status-downloading"), progress: 70 });
+    progress.changeLine({
+      text: getString("status-downloading"),
+      progress: 70,
+    });
     const zipBuffer = await downloadFile(fullZipUrl);
     const outputDir = await createTempDir(dataId);
     const mdPath = await extractMarkdown(zipBuffer, outputDir);
@@ -415,11 +421,10 @@ async function importMarkdownToNote(
   await updateProgress(getString("status-importing"), imageProgressEnd);
 
   // 阶段 6：保存笔记
-  const noteStatus =
-    betterNotes.api?.sync?.getNoteStatus?.(noteItem.id) || {
-      meta: '<div data-schema-version="9">',
-      tail: "</div>",
-    };
+  const noteStatus = betterNotes.api?.sync?.getNoteStatus?.(noteItem.id) || {
+    meta: '<div data-schema-version="9">',
+    tail: "</div>",
+  };
 
   noteItem.setNote(
     `${noteStatus.meta}${htmlContent}${noteStatus.tail || "</div>"}`,
@@ -571,7 +576,10 @@ async function pollBatchResult(
           progress: percent,
         });
       } else {
-        progress.changeLine({ text: getString("status-running"), progress: 55 });
+        progress.changeLine({
+          text: getString("status-running"),
+          progress: 55,
+        });
       }
     } else if (result.state === "converting") {
       progress.changeLine({
