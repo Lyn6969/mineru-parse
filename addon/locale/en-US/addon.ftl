@@ -27,6 +27,7 @@ ai-progress-receiving = Receiving AI response...
 ai-progress-saving = Saving analysis result...
 ai-progress-done = AI analysis complete
 ai-error-no-note = This item has no note. Please parse the PDF first
+ai-error-no-parsed-note = No Mineru parsed note found. Please right-click and run "Mineru: Parse PDF to Note" first
 ai-error-no-apikey = Please configure the AI API key in preferences first
 ai-error-network = Unable to connect to the AI service. Check the API URL
 ai-error-auth = API key is invalid or expired

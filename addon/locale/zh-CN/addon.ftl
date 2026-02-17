@@ -27,6 +27,7 @@ ai-progress-receiving = 正在接收 AI 响应...
 ai-progress-saving = 正在保存解读结果...
 ai-progress-done = AI 解读完成
 ai-error-no-note = 该条目没有笔记，请先解析 PDF
+ai-error-no-parsed-note = 未找到 Mineru 解析笔记，请先右键运行「Mineru：解析 PDF 到笔记」
 ai-error-no-apikey = 请先在偏好设置中配置 AI API 密钥
 ai-error-network = 无法连接到 AI 服务，请检查 API 地址
 ai-error-auth = API 密钥无效或已过期

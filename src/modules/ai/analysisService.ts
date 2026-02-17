@@ -1,5 +1,6 @@
 import { getString } from "../../utils/locale";
 import { getPref } from "../../utils/prefs";
+import { MINERU_NOTE_TAG } from "../parse";
 import { chatCompletion } from "./apiClient";
 import { getItemMetadata, replaceTemplateVariables } from "./promptTemplate";
 import type { AIConfig, ChatMessage } from "./types";
@@ -11,8 +12,12 @@ export async function analyzeWithAI(
   let progress: ReturnType<typeof createProgressWindow> | null = null;
   try {
     const resolved = resolveInput(item, noteItem);
-    if (!resolved.parentItem || !resolved.noteItem) {
+    if (!resolved.parentItem) {
       showAlert(getString("ai-error-no-note" as any));
+      return;
+    }
+    if (!resolved.noteItem) {
+      showAlert(getString("ai-error-no-parsed-note" as any));
       return;
     }
 
@@ -142,29 +147,34 @@ function resolveInput(
   item: Zotero.Item,
   noteItem?: Zotero.Item,
 ): ResolvedInput {
-  const parentFromItem = resolveParentItem(item);
-
+  // 明确传入笔记时，检查是否为 MinerU 解析笔记
   if (noteItem?.isNote()) {
-    return {
-      parentItem: resolveParentItem(noteItem) || parentFromItem,
-      noteItem,
-    };
+    if (hasMineruTag(noteItem)) {
+      return {
+        parentItem: resolveParentItem(noteItem) || resolveParentItem(item),
+        noteItem,
+      };
+    }
+    // 传入的不是解析笔记，回退到自动查找
   }
 
-  if (item.isNote()) {
+  // 如果选中的就是一个带 tag 的笔记
+  if (item.isNote() && hasMineruTag(item)) {
     return {
       parentItem: resolveParentItem(item),
       noteItem: item,
     };
   }
 
-  if (!parentFromItem) {
+  // 从父条目查找 MinerU 解析笔记
+  const parentItem = resolveParentItem(item);
+  if (!parentItem) {
     return { parentItem: null, noteItem: null };
   }
 
   return {
-    parentItem: parentFromItem,
-    noteItem: getLatestChildNote(parentFromItem),
+    parentItem,
+    noteItem: findMineruNote(parentItem),
   };
 }
 
@@ -175,16 +185,25 @@ function resolveParentItem(item: Zotero.Item): Zotero.Item | null {
   return null;
 }
 
-function getLatestChildNote(parentItem: Zotero.Item): Zotero.Item | null {
+function hasMineruTag(item: Zotero.Item): boolean {
+  return item.getTags().some((t) => t.tag === MINERU_NOTE_TAG);
+}
+
+function findMineruNote(parentItem: Zotero.Item): Zotero.Item | null {
   const noteIDs = parentItem.getNotes();
   if (!noteIDs.length) return null;
 
-  const notes = noteIDs
+  const mineruNotes = noteIDs
     .map((id) => Zotero.Items.get(id))
-    .filter((n): n is Zotero.Item => Boolean(n && n.isNote()));
+    .filter(
+      (n): n is Zotero.Item => Boolean(n && n.isNote()) && hasMineruTag(n!),
+    );
 
-  notes.sort((a, b) => getModifiedTime(b) - getModifiedTime(a));
-  return notes[0] || null;
+  if (!mineruNotes.length) return null;
+
+  // 多个解析笔记时取最新的
+  mineruNotes.sort((a, b) => getModifiedTime(b) - getModifiedTime(a));
+  return mineruNotes[0];
 }
 
 function getModifiedTime(item: Zotero.Item): number {

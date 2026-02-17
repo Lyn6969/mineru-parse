@@ -287,10 +287,13 @@ async function getPdfAttachment(
   return null;
 }
 
+export const MINERU_NOTE_TAG = "mineru-parse";
+
 async function createItemNote(parentItem: Zotero.Item) {
   const noteItem = new Zotero.Item("note");
   noteItem.libraryID = parentItem.libraryID;
   noteItem.parentID = parentItem.id;
+  noteItem.addTag(MINERU_NOTE_TAG, 0);
   await noteItem.saveTx();
   return noteItem;
 }

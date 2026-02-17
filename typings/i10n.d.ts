@@ -8,6 +8,7 @@ export type FluentMessageId =
   | 'ai-error-network'
   | 'ai-error-no-apikey'
   | 'ai-error-no-note'
+  | 'ai-error-no-parsed-note'
   | 'ai-error-ratelimit'
   | 'ai-error-timeout'
   | 'ai-progress-done'
