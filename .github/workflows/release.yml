@@ -11,11 +11,22 @@ permissions:
   pull-requests: write
 
 jobs:
-  create-release:
-    uses: zotero-plugin-dev/workflows/.github/workflows/release-plugin.yml@main
-    # You can customize any of the inputs here.
-    # If you omit an input, its default value will be used.
-    with:
-      build: "npm run build"
-      release: "npm run release"
-    secrets: inherit
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run release
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            .scaffold/build/*.xpi
+            .scaffold/build/update.json
+            .scaffold/build/update-beta.json
+          generate_release_notes: true

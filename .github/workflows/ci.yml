@@ -12,24 +12,29 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GitHub_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Setup JS
-        uses: zotero-plugin-dev/workflows/setup-js@main
-      - name: Run Lint
-        run: npm run lint:check
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - run: npm run lint:check
 
   build:
     runs-on: ubuntu-latest
     env:
-      GITHUB_TOKEN: ${{ secrets.GitHub_TOKEN }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Setup JS
-        uses: zotero-plugin-dev/workflows/setup-js@main
-      - name: Run Build
-        run: npm run build
-      - name: Upload build result
-        uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-artifact@v4
         with:
           name: build-result
           path: .scaffold/build
@@ -39,6 +44,10 @@ jobs:
     needs:
       - build
     steps:
-      - name: Setup JS
-        uses: zotero-plugin-dev/workflows/setup-js@main
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
       - run: npm run test
