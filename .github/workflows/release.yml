@@ -29,3 +29,17 @@ jobs:
             .scaffold/build/update.json
             .scaffold/build/update-beta.json
           generate_release_notes: true
+
+      # 将 update.json 上传到固定的 "release" tag，供插件 update_url 检查更新
+      - name: Update release tag
+        run: |
+          git tag -f release
+          git push -f origin release
+      - name: Upload update manifest to release tag
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: release
+          files: |
+            .scaffold/build/update.json
+            .scaffold/build/update-beta.json
+          body: "Zotero 插件更新清单（自动更新，请勿删除此 Release）"
