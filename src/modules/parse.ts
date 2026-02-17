@@ -353,7 +353,8 @@ async function importMarkdownToNote(
     throw new Error("Better Notes API 不完整，无法导入 Markdown");
   }
 
-  let htmlContent = await betterNotes.api.convert.md2html(contentRaw);
+  const content = stripBeforeFirstHeading(contentRaw);
+  let htmlContent = await betterNotes.api.convert.md2html(content);
   logTiming("md2html");
 
   const convertProgressEnd = progressStart + Math.round(progressSpan * 0.15);
@@ -874,4 +875,11 @@ async function writeCacheMetadata(dir: string, meta: CacheMetadata) {
   } catch (error) {
     ztoolkit.log("[Mineru Parse] Write cache metadata failed", error);
   }
+}
+
+// 裁剪第一个 Markdown 标题之前的噪声内容（页眉、页码、DOI 等）
+// 使笔记显示标题为论文真正标题
+function stripBeforeFirstHeading(md: string): string {
+  const idx = md.search(/^#{1,6}\s/m);
+  return idx > 0 ? md.slice(idx) : md;
 }
