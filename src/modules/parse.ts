@@ -287,7 +287,7 @@ async function getPdfAttachment(
   return null;
 }
 
-export const MINERU_NOTE_TAG = "mineru-parse";
+export const MINERU_NOTE_TAG = "文献解析";
 
 async function createItemNote(parentItem: Zotero.Item) {
   const noteItem = new Zotero.Item("note");
