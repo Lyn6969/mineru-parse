@@ -88,6 +88,8 @@ export async function analyzeWithAI(
       throw new Error("empty_response");
     }
 
+    const htmlContent = await markdownToHtml(analysisResult);
+
     progress.changeLine({
       text: getString("ai-progress-saving" as any),
       progress: 85,
@@ -101,7 +103,7 @@ export async function analyzeWithAI(
         "<h2>AI 解读</h2>",
         `<p><em>模型: ${escapeHtml(model)} | 时间: ${formatDateTime(new Date())}</em></p>`,
         "<hr/>",
-        textToHtml(analysisResult),
+        htmlContent,
       ].join(""),
     );
     await aiNote.saveTx();
@@ -284,13 +286,7 @@ export function stripHtml(html: string): string {
   }
 }
 
-export function textToHtml(text: string): string {
-  const normalized = text.replace(/\r\n?/g, "\n").trim();
-  if (!normalized) return "<p></p>";
-  return normalized
-    .split(/\n{2,}/)
-    .map(
-      (paragraph) => `<p>${escapeHtml(paragraph).replace(/\n/g, "<br/>")}</p>`,
-    )
-    .join("");
+async function markdownToHtml(md: string): Promise<string> {
+  const betterNotes = (Zotero as any).BetterNotes;
+  return (await betterNotes.api.convert.md2html(md)) as string;
 }
