@@ -13,11 +13,11 @@ export async function analyzeWithAI(
   try {
     const resolved = resolveInput(item, noteItem);
     if (!resolved.parentItem) {
-      showAlert(getString("ai-error-no-note" as any));
+      showAlert(getString("ai-error-no-note"));
       return;
     }
     if (!resolved.noteItem) {
-      showAlert(getString("ai-error-no-parsed-note" as any));
+      showAlert(getString("ai-error-no-parsed-note"));
       return;
     }
 
@@ -25,21 +25,19 @@ export async function analyzeWithAI(
     const sourceNote = resolved.noteItem;
     const noteContent = stripHtml(sourceNote.getNote()).trim();
     if (!noteContent) {
-      showAlert(getString("ai-error-no-note" as any));
+      showAlert(getString("ai-error-no-note"));
       return;
     }
 
     const baseUrl =
-      String(
-        getPref("ai.baseUrl" as any) || "https://api.openai.com/v1",
-      ).trim() || "https://api.openai.com/v1";
-    const apiKey = String(getPref("ai.apiKey" as any) || "").trim();
-    const model =
-      String(getPref("ai.model" as any) || "gpt-4o").trim() || "gpt-4o";
-    const systemPrompt = String(getPref("ai.systemPrompt" as any) || "").trim();
+      String(getPref("ai.baseUrl") || "https://api.openai.com/v1").trim() ||
+      "https://api.openai.com/v1";
+    const apiKey = String(getPref("ai.apiKey") || "").trim();
+    const model = String(getPref("ai.model") || "gpt-4o").trim() || "gpt-4o";
+    const systemPrompt = String(getPref("ai.systemPrompt") || "").trim();
 
     if (!apiKey) {
-      showAlert(getString("ai-error-no-apikey" as any));
+      showAlert(getString("ai-error-no-apikey"));
       return;
     }
 
@@ -56,8 +54,8 @@ export async function analyzeWithAI(
     const config: AIConfig = { baseUrl, apiKey, model, systemPrompt };
 
     progress = createProgressWindow(
-      getString("ai-progress-title" as any),
-      getString("ai-progress-requesting" as any),
+      getString("ai-progress-title"),
+      getString("ai-progress-requesting"),
     );
 
     let analysisResult = "";
@@ -67,7 +65,7 @@ export async function analyzeWithAI(
       onToken: (token: string) => {
         if (!receivingShown) {
           progress?.changeLine({
-            text: getString("ai-progress-receiving" as any),
+            text: getString("ai-progress-receiving"),
             progress: 60,
           });
           receivingShown = true;
@@ -91,7 +89,7 @@ export async function analyzeWithAI(
     const htmlContent = await markdownToHtml(analysisResult);
 
     progress.changeLine({
-      text: getString("ai-progress-saving" as any),
+      text: getString("ai-progress-saving"),
       progress: 85,
     });
 
@@ -109,7 +107,7 @@ export async function analyzeWithAI(
     await aiNote.saveTx();
 
     progress.changeLine({
-      text: getString("ai-progress-done" as any),
+      text: getString("ai-progress-done"),
       progress: 100,
       type: "success",
     });
@@ -221,22 +219,22 @@ function mapAIError(error: unknown): string {
   const lower = message.toLowerCase();
 
   if (lower.includes("密钥无效") || lower.includes("已过期")) {
-    return getString("ai-error-auth" as any);
+    return getString("ai-error-auth");
   }
   if (lower.includes("频率过高")) {
-    return getString("ai-error-ratelimit" as any);
+    return getString("ai-error-ratelimit");
   }
   if (lower.includes("timeout") || lower.includes("timed out")) {
-    return getString("ai-error-timeout" as any);
+    return getString("ai-error-timeout");
   }
   if (
     lower.includes("无法连接") ||
     lower.includes("failed to fetch") ||
     lower.includes("network")
   ) {
-    return getString("ai-error-network" as any);
+    return getString("ai-error-network");
   }
-  return `${getString("ai-error-generic" as any)}: ${message}`;
+  return `${getString("ai-error-generic")}: ${message}`;
 }
 
 function getErrorMessage(error: unknown): string {

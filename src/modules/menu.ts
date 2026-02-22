@@ -36,7 +36,7 @@ export function registerAIAnalyzeMenu(_win: Window) {
   ztoolkit.Menu.register("item", {
     tag: "menuitem",
     id: `${config.addonRef}-itemmenu-ai-analyze`,
-    label: getString("menu-ai-analyze" as any),
+    label: getString("menu-ai-analyze"),
     icon: menuIcon,
     commandListener: async () => {
       const pane = Zotero.getActiveZoteroPane();
