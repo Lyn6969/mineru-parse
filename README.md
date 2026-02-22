@@ -1,6 +1,6 @@
 # Mineru Parse
 
-[![Zotero 7](https://img.shields.io/badge/Zotero-7-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
+[![Zotero 7 | 8](https://img.shields.io/badge/Zotero-7_|_8-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
 [![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
 
@@ -14,11 +14,12 @@
 
 ### What is Mineru Parse?
 
-Mineru Parse is a Zotero 7 plugin that converts PDF attachments into structured Zotero notes using the [MinerU](https://mineru.net) cloud parsing service. It automatically extracts text, formulas, tables, and images from PDFs and imports them as rich Zotero notes via [Better Notes](https://github.com/windingwind/zotero-better-notes).
+Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attachments into structured Zotero notes using the [MinerU](https://mineru.net) cloud parsing service. It automatically extracts text, formulas, tables, and images from PDFs and imports them as rich Zotero notes via [Better Notes](https://github.com/windingwind/zotero-better-notes).
 
 ### Features
 
 - **One-click PDF to Note** — Right-click any item to parse its PDF and generate a structured note
+- **AI Analysis** — Send parsed notes to an LLM for intelligent analysis and interpretation
 - **Full content extraction** — Text, mathematical formulas, tables, and images
 - **Smart caching** — Parsed results are cached locally to avoid redundant API calls
 - **Batch image import** — High-performance parallel image reading and embedding
@@ -27,7 +28,7 @@ Mineru Parse is a Zotero 7 plugin that converts PDF attachments into structured 
 
 ### Prerequisites
 
-1. **[Zotero 7](https://www.zotero.org/support/beta_builds)** (version 6.999+)
+1. **[Zotero 7 or 8](https://www.zotero.org/download/)** (version 6.999+)
 2. **[Better Notes](https://github.com/windingwind/zotero-better-notes)** plugin — required for Markdown-to-HTML conversion
 3. **MinerU API Token** — register at [mineru.net](https://mineru.net) to obtain your token
 
@@ -52,6 +53,7 @@ Mineru Parse is a Zotero 7 plugin that converts PDF attachments into structured 
 | ----------------------------- | ---------------------------------------------------------------- |
 | **Mineru: Parse PDF to Note** | Parse the PDF and create a note. Uses cached result if available |
 | **Mineru: Force Re-parse**    | Ignore cache and re-upload the PDF for fresh parsing             |
+| **AI Analyze**                | Send the parsed note to an LLM for analysis (requires AI config) |
 
 #### Workflow
 
@@ -82,6 +84,15 @@ Select item → Right-click → Mineru → Parse PDF to Note
 | **Cache Directory** | _(system temp)_ | Custom directory for caching parsed results                                           |
 | **Poll Interval**   | `3000` ms       | How often to check parsing status                                                     |
 | **Poll Timeout**    | `900000` ms     | Maximum wait time for parsing (15 minutes)                                            |
+
+#### AI Analysis Settings
+
+| Setting           | Default                     | Description                                                     |
+| ----------------- | --------------------------- | --------------------------------------------------------------- |
+| **API URL**       | `https://api.openai.com/v1` | OpenAI-compatible API endpoint                                  |
+| **API Key**       | _(empty)_                   | API key for the LLM service (required for AI analysis)          |
+| **Model**         | `gpt-4o`                    | Model name to use                                               |
+| **System Prompt** | _(empty)_                   | Custom system prompt; supports `{{title}}`, `{{authors}}`, etc. |
 
 ### File Size Limit
 
@@ -118,6 +129,11 @@ src/
 │   ├── parse.ts                # Core parsing logic (API, cache, ZIP extraction)
 │   ├── imageImporter.ts        # Batch image import with parallel I/O
 │   ├── menu.ts                 # Right-click context menu
+│   ├── ai/                     # AI analysis module
+│   │   ├── types.ts            # Type definitions
+│   │   ├── apiClient.ts        # OpenAI-compatible API client (SSE streaming)
+│   │   ├── promptTemplate.ts   # Prompt template with variable substitution
+│   │   └── analysisService.ts  # Analysis orchestration
 │   ├── preferenceScript.ts     # Preference panel event binding
 │   └── preferenceWindow.ts     # Preference pane registration
 └── utils/
@@ -156,11 +172,12 @@ addon/
 
 ### 简介
 
-Mineru Parse 是一个 Zotero 7 插件，通过 [MinerU](https://mineru.net) 云端解析服务，将 PDF 附件转换为结构化的 Zotero 笔记。它能自动提取 PDF 中的文本、公式、表格和图片，并借助 [Better Notes](https://github.com/windingwind/zotero-better-notes) 插件生成富文本笔记。
+Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU](https://mineru.net) 云端解析服务，将 PDF 附件转换为结构化的 Zotero 笔记。它能自动提取 PDF 中的文本、公式、表格和图片，并借助 [Better Notes](https://github.com/windingwind/zotero-better-notes) 插件生成富文本笔记。
 
 ### 功能特性
 
 - **一键 PDF 转笔记** — 右键菜单一键解析 PDF，自动生成结构化笔记
+- **AI 解读** — 将解析笔记发送给大模型进行智能分析解读
 - **全内容提取** — 支持文本、数学公式、表格和图片
 - **智能缓存** — 解析结果本地缓存，避免重复调用 API
 - **批量图片导入** — 高性能并行读取和嵌入图片
@@ -169,7 +186,7 @@ Mineru Parse 是一个 Zotero 7 插件，通过 [MinerU](https://mineru.net) 云
 
 ### 前置要求
 
-1. **[Zotero 7](https://www.zotero.org/support/beta_builds)**（版本 6.999+）
+1. **[Zotero 7 或 8](https://www.zotero.org/download/)**（版本 6.999+）
 2. **[Better Notes](https://github.com/windingwind/zotero-better-notes)** 插件 — 用于 Markdown 转 HTML
 3. **MinerU API Token** — 在 [mineru.net](https://mineru.net) 注册获取
 
@@ -194,6 +211,7 @@ Mineru Parse 是一个 Zotero 7 插件，通过 [MinerU](https://mineru.net) 云
 | --------------------------- | --------------------------------- |
 | **Mineru：解析 PDF 到笔记** | 解析 PDF 并创建笔记，优先使用缓存 |
 | **Mineru：强制重新解析**    | 忽略缓存，重新上传 PDF 进行解析   |
+| **AI 解读**                 | 将解析笔记发送给大模型进行分析    |
 
 #### 工作流程
 
@@ -224,6 +242,15 @@ Mineru Parse 是一个 Zotero 7 插件，通过 [MinerU](https://mineru.net) 云
 | **缓存目录** | _（系统临时目录）_ | 自定义解析结果缓存路径                                |
 | **轮询间隔** | `3000` 毫秒        | 查询解析状态的间隔时间                                |
 | **轮询超时** | `900000` 毫秒      | 解析最长等待时间（15 分钟）                           |
+
+#### AI 解读设置
+
+| 选项           | 默认值                      | 说明                                                     |
+| -------------- | --------------------------- | -------------------------------------------------------- |
+| **API 地址**   | `https://api.openai.com/v1` | OpenAI 兼容的 API 端点                                   |
+| **API 密钥**   | _（空）_                    | 大模型服务的 API 密钥（使用 AI 解读前必填）              |
+| **模型**       | `gpt-4o`                    | 使用的模型名称                                           |
+| **系统提示词** | _（空）_                    | 自定义系统提示词，支持 `{{title}}`、`{{authors}}` 等变量 |
 
 ### 文件大小限制
 
@@ -260,6 +287,11 @@ src/
 │   ├── parse.ts                # 核心解析逻辑（API 交互、缓存、ZIP 解压）
 │   ├── imageImporter.ts        # 批量图片导入（并行 I/O）
 │   ├── menu.ts                 # 右键菜单注册
+│   ├── ai/                     # AI 解读模块
+│   │   ├── types.ts            # 类型定义
+│   │   ├── apiClient.ts        # OpenAI 兼容 API 客户端（SSE 流式）
+│   │   ├── promptTemplate.ts   # 提示词模板变量替换
+│   │   └── analysisService.ts  # 分析主流程
 │   ├── preferenceScript.ts     # 偏好设置事件绑定
 │   └── preferenceWindow.ts     # 偏好设置面板注册
 └── utils/
