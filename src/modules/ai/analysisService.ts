@@ -1,6 +1,6 @@
 import { getString } from "../../utils/locale";
 import { getPref } from "../../utils/prefs";
-import { MINERU_NOTE_TAG } from "../parse";
+import { MINERU_NOTE_TAG, parseSelectedItem } from "../parse";
 import { chatCompletion } from "./apiClient";
 import { getItemMetadata, replaceTemplateVariables } from "./promptTemplate";
 import type { AIConfig, ChatMessage } from "./types";
@@ -16,13 +16,19 @@ export async function analyzeWithAI(
       showAlert(getString("ai-error-no-note"));
       return;
     }
-    if (!resolved.noteItem) {
-      showAlert(getString("ai-error-no-parsed-note"));
-      return;
-    }
-
     const parentItem = resolved.parentItem;
-    const sourceNote = resolved.noteItem;
+    let sourceNote = resolved.noteItem;
+
+    // 没有解析笔记时，自动触发全文解析
+    // parseSelectedItem 通过 Zotero 选区获取条目，此处假设选区与 item 一致
+    if (!sourceNote) {
+      await parseSelectedItem();
+      sourceNote = findMineruNote(parentItem);
+      if (!sourceNote) {
+        // parseSelectedItem 内部已处理错误提示，此处静默返回
+        return;
+      }
+    }
     const noteContent = stripHtml(sourceNote.getNote()).trim();
     if (!noteContent) {
       showAlert(getString("ai-error-no-note"));
