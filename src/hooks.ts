@@ -1,6 +1,6 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { registerPrefsWindow } from "./modules/preferenceWindow";
-import { registerAIAnalyzeMenu, registerItemMenu } from "./modules/menu";
+import { registerItemMenu } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import { getString, initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
@@ -38,7 +38,6 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
     .show();
 
   registerItemMenu(win);
-  registerAIAnalyzeMenu(win);
   registerShortcut();
 
   popupWin.changeLine({
