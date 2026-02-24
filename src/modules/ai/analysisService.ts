@@ -103,12 +103,12 @@ export async function analyzeWithAI(
     aiNote.libraryID = parentItem.libraryID;
     aiNote.parentID = parentItem.id;
     aiNote.setNote(
-      [
+      `<div data-schema-version="9">${[
         "<h2>AI 解读</h2>",
         `<p><em>模型: ${escapeHtml(model)} | 时间: ${formatDateTime(new Date())}</em></p>`,
         "<hr/>",
         htmlContent,
-      ].join(""),
+      ].join("")}</div>`,
     );
     await aiNote.saveTx();
 
