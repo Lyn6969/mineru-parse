@@ -23,4 +23,7 @@ pref-ai-base-url = API Base URL
 pref-ai-api-key = API Key
 pref-ai-model = Model Name
 pref-ai-system-prompt = System Prompt
+pref-ai-prompt-template = Preset Template
+pref-ai-apply-template =
+    .label = Apply
 pref-ai-prompt-help = Supported placeholders: { "{{title}}" }, { "{{authors}}" }, { "{{year}}" }, { "{{abstractNote}}" }

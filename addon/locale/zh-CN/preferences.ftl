@@ -23,4 +23,7 @@ pref-ai-base-url = API 地址
 pref-ai-api-key = API 密钥
 pref-ai-model = 模型名称
 pref-ai-system-prompt = 系统提示词
+pref-ai-prompt-template = 预设模板
+pref-ai-apply-template =
+    .label = 应用模板
 pref-ai-prompt-help = 支持占位符: { "{{title}}" }, { "{{authors}}" }, { "{{year}}" }, { "{{abstractNote}}" }
