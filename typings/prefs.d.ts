@@ -22,6 +22,7 @@ declare namespace _ZoteroTypes {
       "ai.apiKey": string;
       "ai.model": string;
       "ai.systemPrompt": string;
+      "ai.promptTemplates": string;
     };
   }
 }

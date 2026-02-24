@@ -16,3 +16,4 @@ pref(
   "__prefsPrefix__.ai.systemPrompt",
   "你是一位学术论文分析助手，请对以下笔记内容进行深度解读，包括核心观点提炼、方法论分析、关键发现总结等。",
 );
+pref("__prefsPrefix__.ai.promptTemplates", "");

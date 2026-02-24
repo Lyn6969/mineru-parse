@@ -200,6 +200,43 @@ function bindShortcutInput() {
   });
 }
 
+function loadTemplates(): PromptTemplate[] {
+  const json = getPref("ai.promptTemplates") as string;
+  if (!json) return BUILTIN_TEMPLATES.map((t) => ({ ...t }));
+  try {
+    const parsed = JSON.parse(json);
+    return Array.isArray(parsed) && parsed.length
+      ? parsed
+      : BUILTIN_TEMPLATES.map((t) => ({ ...t }));
+  } catch {
+    return BUILTIN_TEMPLATES.map((t) => ({ ...t }));
+  }
+}
+
+function saveTemplates(templates: PromptTemplate[]): void {
+  setPref("ai.promptTemplates", JSON.stringify(templates));
+}
+
+function refreshMenulist(
+  doc: Document,
+  popup: Element,
+  templates: PromptTemplate[],
+): void {
+  while (popup.firstChild) popup.removeChild(popup.firstChild);
+
+  const placeholder = doc.createXULElement("menuitem");
+  placeholder.setAttribute("label", "-- 选择模板 --");
+  placeholder.setAttribute("value", "");
+  popup.appendChild(placeholder);
+
+  for (const tpl of templates) {
+    const item = doc.createXULElement("menuitem");
+    item.setAttribute("label", tpl.name);
+    item.setAttribute("value", tpl.id);
+    popup.appendChild(item);
+  }
+}
+
 function bindTemplateSelector() {
   const doc = addon.data.prefs?.window.document;
   if (!doc) return;
@@ -210,43 +247,117 @@ function bindTemplateSelector() {
   const applyBtn = doc.querySelector<HTMLElement>(
     "#mineru-parse-ai-apply-template",
   );
+  const saveBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-ai-save-template",
+  );
+  const newBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-ai-new-template",
+  );
+  const deleteBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-ai-delete-template",
+  );
+  const resetBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-ai-reset-templates",
+  );
   if (!menulist || !applyBtn) return;
 
-  // 填充下拉框
   const popup = menulist.querySelector("menupopup");
   if (!popup) return;
 
-  const placeholder = doc.createXULElement("menuitem");
-  placeholder.setAttribute("label", "-- 选择模板 --");
-  placeholder.setAttribute("value", "");
-  popup.appendChild(placeholder);
-
-  for (const tpl of BUILTIN_TEMPLATES) {
-    const item = doc.createXULElement("menuitem");
-    item.setAttribute("label", tpl.name);
-    item.setAttribute("value", tpl.id);
-    popup.appendChild(item);
-  }
-
+  let templates = loadTemplates();
+  refreshMenulist(doc, popup, templates);
   (menulist as any).selectedIndex = 0;
 
-  // 点击"应用模板"
+  const getTextarea = () =>
+    doc.querySelector<HTMLTextAreaElement>("#mineru-parse-ai-system-prompt");
+
+  // 应用模板
   applyBtn.addEventListener("command", () => {
     const selectedId = (menulist as any).value;
     if (!selectedId) return;
 
-    const tpl = BUILTIN_TEMPLATES.find((t) => t.id === selectedId);
+    const tpl = templates.find((t) => t.id === selectedId);
     if (!tpl) return;
 
-    const textarea = doc.querySelector<HTMLTextAreaElement>(
-      "#mineru-parse-ai-system-prompt",
-    );
-    if (textarea) {
-      textarea.value = tpl.prompt;
+    const textarea = getTextarea();
+    const current = textarea?.value?.trim() || "";
+    if (current && current !== tpl.prompt.trim()) {
+      const win = addon.data.prefs?.window;
+      if (win && !win.confirm("当前提示词将被替换，是否继续？")) return;
     }
-    setPref("ai.systemPrompt" as any, tpl.prompt);
 
-    // 重置下拉框到占位项
+    if (textarea) textarea.value = tpl.prompt;
+    setPref("ai.systemPrompt", tpl.prompt);
+    (menulist as any).selectedIndex = 0;
+  });
+
+  // 保存模板
+  saveBtn?.addEventListener("command", () => {
+    const selectedId = (menulist as any).value;
+    if (!selectedId) return;
+
+    const textarea = getTextarea();
+    if (!textarea) return;
+
+    const idx = templates.findIndex((t) => t.id === selectedId);
+    if (idx === -1) return;
+
+    templates[idx].prompt = textarea.value;
+    saveTemplates(templates);
+  });
+
+  // 新建模板
+  newBtn?.addEventListener("command", () => {
+    const win = addon.data.prefs?.window;
+    if (!win) return;
+
+    const name = win.prompt("请输入模板名称：");
+    if (!name?.trim()) return;
+
+    const textarea = getTextarea();
+    const prompt = textarea?.value?.trim() || "";
+
+    const tpl: PromptTemplate = {
+      id: `custom_${Date.now()}`,
+      name: name.trim(),
+      prompt,
+    };
+    templates.push(tpl);
+    saveTemplates(templates);
+    refreshMenulist(doc, popup, templates);
+
+    // 选中新模板
+    (menulist as any).selectedIndex = templates.length;
+  });
+
+  // 删除模板
+  deleteBtn?.addEventListener("command", () => {
+    const selectedId = (menulist as any).value;
+    if (!selectedId) return;
+
+    const win = addon.data.prefs?.window;
+    const tpl = templates.find((t) => t.id === selectedId);
+    if (!tpl || !win) return;
+
+    if (!win.confirm(`确定删除模板「${tpl.name}」吗？`)) return;
+
+    templates = templates.filter((t) => t.id !== selectedId);
+    saveTemplates(templates);
+    refreshMenulist(doc, popup, templates);
+    (menulist as any).selectedIndex = 0;
+  });
+
+  // 恢复默认
+  resetBtn?.addEventListener("command", () => {
+    const win = addon.data.prefs?.window;
+    if (!win) return;
+
+    if (!win.confirm("将恢复为内置默认模板，自定义模板将被清除。是否继续？"))
+      return;
+
+    templates = BUILTIN_TEMPLATES.map((t) => ({ ...t }));
+    saveTemplates(templates);
+    refreshMenulist(doc, popup, templates);
     (menulist as any).selectedIndex = 0;
   });
 }
