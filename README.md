@@ -19,7 +19,7 @@ Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attach
 ### Features
 
 - **One-click PDF to Note** — Right-click any item to parse its PDF and generate a structured note
-- **AI Analysis** — Send parsed notes to an LLM for intelligent analysis and interpretation
+- **AI Analysis** — Send parsed notes to an LLM for intelligent analysis and interpretation; automatically triggers PDF parsing if no parsed note exists; includes 5 built-in prompt templates with full customization (edit, create, delete)
 - **Full content extraction** — Text, mathematical formulas, tables, and images
 - **Smart caching** — Parsed results are cached locally to avoid redundant API calls
 - **Batch image import** — High-performance parallel image reading and embedding
@@ -49,11 +49,11 @@ Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attach
 
 #### Right-click Menu
 
-| Menu Item                     | Description                                                      |
-| ----------------------------- | ---------------------------------------------------------------- |
-| **Mineru: Parse PDF to Note** | Parse the PDF and create a note. Uses cached result if available |
-| **Mineru: Force Re-parse**    | Ignore cache and re-upload the PDF for fresh parsing             |
-| **AI Analyze**                | Send the parsed note to an LLM for analysis (requires AI config) |
+| Menu Item                     | Description                                                                              |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| **Mineru: Parse PDF to Note** | Parse the PDF and create a note. Uses cached result if available                         |
+| **Mineru: Force Re-parse**    | Ignore cache and re-upload the PDF for fresh parsing                                     |
+| **AI Analyze**                | Send the parsed note to an LLM for analysis; auto-triggers parsing if no note exists yet |
 
 #### Workflow
 
@@ -87,12 +87,13 @@ Select item → Right-click → Mineru → Parse PDF to Note
 
 #### AI Analysis Settings
 
-| Setting           | Default                     | Description                                                     |
-| ----------------- | --------------------------- | --------------------------------------------------------------- |
-| **API URL**       | `https://api.openai.com/v1` | OpenAI-compatible API endpoint                                  |
-| **API Key**       | _(empty)_                   | API key for the LLM service (required for AI analysis)          |
-| **Model**         | `gpt-4o`                    | Model name to use                                               |
-| **System Prompt** | _(empty)_                   | Custom system prompt; supports `{{title}}`, `{{authors}}`, etc. |
+| Setting              | Default                     | Description                                                                                                                                                    |
+| -------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **API URL**          | `https://api.openai.com/v1` | OpenAI-compatible API endpoint                                                                                                                                 |
+| **API Key**          | _(empty)_                   | API key for the LLM service (required for AI analysis)                                                                                                         |
+| **Model**            | `gpt-4o`                    | Model name to use                                                                                                                                              |
+| **System Prompt**    | _(default)_                 | Custom system prompt; supports `{{title}}`, `{{authors}}`, etc.                                                                                                |
+| **Preset Templates** | 5 built-in                  | Choose from preset prompt templates (General, Method, Literature Review, Plain Summary, Critical Review); supports edit, create, delete, and reset to defaults |
 
 ### File Size Limit
 
@@ -177,7 +178,7 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 ### 功能特性
 
 - **一键 PDF 转笔记** — 右键菜单一键解析 PDF，自动生成结构化笔记
-- **AI 解读** — 将解析笔记发送给大模型进行智能分析解读
+- **AI 解读** — 将解析笔记发送给大模型进行智能分析解读；无解析笔记时自动触发全文解析；内置 5 个提示词预设模板，支持编辑、新建、删除
 - **全内容提取** — 支持文本、数学公式、表格和图片
 - **智能缓存** — 解析结果本地缓存，避免重复调用 API
 - **批量图片导入** — 高性能并行读取和嵌入图片
@@ -207,11 +208,11 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 
 #### 右键菜单
 
-| 菜单项                      | 说明                              |
-| --------------------------- | --------------------------------- |
-| **Mineru：解析 PDF 到笔记** | 解析 PDF 并创建笔记，优先使用缓存 |
-| **Mineru：强制重新解析**    | 忽略缓存，重新上传 PDF 进行解析   |
-| **AI 解读**                 | 将解析笔记发送给大模型进行分析    |
+| 菜单项                      | 说明                                           |
+| --------------------------- | ---------------------------------------------- |
+| **Mineru：解析 PDF 到笔记** | 解析 PDF 并创建笔记，优先使用缓存              |
+| **Mineru：强制重新解析**    | 忽略缓存，重新上传 PDF 进行解析                |
+| **AI 解读**                 | 将解析笔记发送给大模型分析；无笔记时自动先解析 |
 
 #### 工作流程
 
@@ -245,12 +246,13 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 
 #### AI 解读设置
 
-| 选项           | 默认值                      | 说明                                                     |
-| -------------- | --------------------------- | -------------------------------------------------------- |
-| **API 地址**   | `https://api.openai.com/v1` | OpenAI 兼容的 API 端点                                   |
-| **API 密钥**   | _（空）_                    | 大模型服务的 API 密钥（使用 AI 解读前必填）              |
-| **模型**       | `gpt-4o`                    | 使用的模型名称                                           |
-| **系统提示词** | _（空）_                    | 自定义系统提示词，支持 `{{title}}`、`{{authors}}` 等变量 |
+| 选项           | 默认值                      | 说明                                                                                                         |
+| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| **API 地址**   | `https://api.openai.com/v1` | OpenAI 兼容的 API 端点                                                                                       |
+| **API 密钥**   | _（空）_                    | 大模型服务的 API 密钥（使用 AI 解读前必填）                                                                  |
+| **模型**       | `gpt-4o`                    | 使用的模型名称                                                                                               |
+| **系统提示词** | _（默认）_                  | 自定义系统提示词，支持 `{{title}}`、`{{authors}}` 等变量                                                     |
+| **预设模板**   | 5 个内置                    | 可选择预设提示词模板（通用解读、方法论精读、文献综述、通俗摘要、批判性评读）；支持编辑、新建、删除和恢复默认 |
 
 ### 文件大小限制
 
