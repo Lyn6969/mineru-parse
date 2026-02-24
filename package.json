@@ -1,7 +1,7 @@
 {
   "name": "mineru-parse",
   "type": "module",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "description": "Mineru PDF 解析到笔记",
   "config": {
     "addonName": "Mineru Parse",

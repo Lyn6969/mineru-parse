@@ -19,6 +19,7 @@ Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attach
 ### Features
 
 - **One-click PDF to Note** — Right-click any item to parse its PDF and generate a structured note
+- **Batch Parsing** — Standalone batch window: scan entire library or collection for unparsed items, add selected items to queue, start/pause/stop batch processing with real-time progress tracking and retry failed items
 - **AI Analysis** — Send parsed notes to an LLM for intelligent analysis and interpretation; automatically triggers PDF parsing if no parsed note exists; includes 5 built-in prompt templates with full customization (edit, create, delete)
 - **Full content extraction** — Text, mathematical formulas, tables, and images
 - **Smart caching** — Parsed results are cached locally to avoid redundant API calls
@@ -54,6 +55,13 @@ Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attach
 | **Mineru: Parse PDF to Note** | Parse the PDF and create a note. Uses cached result if available                         |
 | **Mineru: Force Re-parse**    | Ignore cache and re-upload the PDF for fresh parsing                                     |
 | **AI Analyze**                | Send the parsed note to an LLM for analysis; auto-triggers parsing if no note exists yet |
+| **Add to Batch Parse**        | Add the selected item(s) to the batch parsing queue window                               |
+
+#### Tools Menu
+
+| Menu Item       | Description                              |
+| --------------- | ---------------------------------------- |
+| **Batch Parse** | Open the standalone batch parsing window |
 
 #### Workflow
 
@@ -69,6 +77,33 @@ Select item → Right-click → Mineru → Parse PDF to Note
       6. Import images as Zotero attachments
       7. Create note with embedded images
 ```
+
+#### Batch Parsing
+
+Open the batch window via `Tools` → `Batch Parse`, or right-click items → `Mineru` → `Add to Batch Parse`.
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Mineru Batch Parse                                  │
+├──────────────────────────────────────────────────────┤
+│  Total: 42   Pending: 35   Parsing: 1   Done: 4     │
+├──────────────────────────────────────────────────────┤
+│  [Scan Library] [Scan Collection] [Add Selected]     │
+├───────────────────────┬──────────┬───────────────────┤
+│  Title                │  Status  │  Progress         │
+├───────────────────────┼──────────┼───────────────────┤
+│  A Review of Deep...  │  Done    │  100%             │
+│  Attention Is All...  │  Parsing │  65%              │
+│  BERT: Pre-training.. │  Pending │  0%               │
+├───────────────────────┴──────────┴───────────────────┤
+│  [Start] [Pause] [Stop] [Retry Failed] [Remove Done] │
+└──────────────────────────────────────────────────────┘
+```
+
+- **Scan Library / Collection** — Automatically find items without parsed notes that have PDF attachments
+- **Start / Pause / Stop** — Control the sequential parsing queue
+- **Retry Failed** — Re-queue all failed items for another attempt
+- **Remove Done** — Clean up completed/skipped/cancelled items from the list
 
 ### Settings
 
@@ -129,7 +164,11 @@ src/
 ├── modules/
 │   ├── parse.ts                # Core parsing logic (API, cache, ZIP extraction)
 │   ├── imageImporter.ts        # Batch image import with parallel I/O
-│   ├── menu.ts                 # Right-click context menu
+│   ├── menu.ts                 # Right-click context menu & Tools menu
+│   ├── batch/                  # Batch parsing module
+│   │   ├── batchTypes.ts       # Type definitions (BatchItem, QueueState, etc.)
+│   │   ├── batchQueue.ts       # Queue manager (state machine, concurrent scan)
+│   │   └── batchWindow.ts      # Standalone batch window (Dialog + VirtualizedTable)
 │   ├── ai/                     # AI analysis module
 │   │   ├── types.ts            # Type definitions
 │   │   ├── apiClient.ts        # OpenAI-compatible API client (SSE streaming)
@@ -178,6 +217,7 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 ### 功能特性
 
 - **一键 PDF 转笔记** — 右键菜单一键解析 PDF，自动生成结构化笔记
+- **批量解析** — 独立批量解析窗口：扫描全库或当前集合中未解析的条目，手动添加选中条目到队列，支持开始/暂停/停止/重试失败，实时显示每条进度
 - **AI 解读** — 将解析笔记发送给大模型进行智能分析解读；无解析笔记时自动触发全文解析；内置 5 个提示词预设模板，支持编辑、新建、删除
 - **全内容提取** — 支持文本、数学公式、表格和图片
 - **智能缓存** — 解析结果本地缓存，避免重复调用 API
@@ -213,6 +253,13 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 | **Mineru：解析 PDF 到笔记** | 解析 PDF 并创建笔记，优先使用缓存              |
 | **Mineru：强制重新解析**    | 忽略缓存，重新上传 PDF 进行解析                |
 | **AI 解读**                 | 将解析笔记发送给大模型分析；无笔记时自动先解析 |
+| **添加到批量解析**          | 将选中条目添加到批量解析队列窗口               |
+
+#### 工具菜单
+
+| 菜单项       | 说明                 |
+| ------------ | -------------------- |
+| **批量解析** | 打开独立批量解析窗口 |
 
 #### 工作流程
 
@@ -228,6 +275,33 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
       6. 将图片导入为 Zotero 附件
       7. 创建含嵌入图片的笔记
 ```
+
+#### 批量解析
+
+通过 `工具` → `批量解析` 打开批量窗口，或右键条目 → `Mineru` → `添加到批量解析`。
+
+```
+┌──────────────────────────────────────────────────────┐
+│  Mineru 批量解析                                      │
+├──────────────────────────────────────────────────────┤
+│  总计: 42   等待: 35   解析中: 1   完成: 4   失败: 2  │
+├──────────────────────────────────────────────────────┤
+│  [扫描全库] [扫描当前集合] [添加选中条目] [清空队列]   │
+├───────────────────────┬─────────┬────────────────────┤
+│  标题                  │  状态   │  进度              │
+├───────────────────────┼─────────┼────────────────────┤
+│  A Review of Deep...  │  已完成  │  100%              │
+│  Attention Is All...  │ 正在解析 │  65%               │
+│  BERT: Pre-training.. │  等待中  │  0%                │
+├───────────────────────┴─────────┴────────────────────┤
+│  [开始解析] [暂停] [停止] [重试失败] [移除已完成]      │
+└──────────────────────────────────────────────────────┘
+```
+
+- **扫描全库 / 扫描当前集合** — 自动查找有 PDF 附件但未解析的条目
+- **开始 / 暂停 / 停止** — 控制串行解析队列
+- **重试失败** — 将所有失败条目重新加入队列
+- **移除已完成** — 清理已完成/已跳过/已取消的条目
 
 ### 设置选项
 
@@ -288,7 +362,11 @@ src/
 ├── modules/
 │   ├── parse.ts                # 核心解析逻辑（API 交互、缓存、ZIP 解压）
 │   ├── imageImporter.ts        # 批量图片导入（并行 I/O）
-│   ├── menu.ts                 # 右键菜单注册
+│   ├── menu.ts                 # 右键菜单与工具菜单注册
+│   ├── batch/                  # 批量解析模块
+│   │   ├── batchTypes.ts       # 类型定义（BatchItem、QueueState 等）
+│   │   ├── batchQueue.ts       # 队列管理器（状态机、分批并发扫描）
+│   │   └── batchWindow.ts      # 独立批量窗口（Dialog + VirtualizedTable）
 │   ├── ai/                     # AI 解读模块
 │   │   ├── types.ts            # 类型定义
 │   │   ├── apiClient.ts        # OpenAI 兼容 API 客户端（SSE 流式）
