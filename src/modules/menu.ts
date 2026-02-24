@@ -2,8 +2,9 @@ import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { analyzeWithAI } from "./ai/analysisService";
 
+const menuIcon = `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`;
+
 export function registerItemMenu(_win: Window) {
-  const menuIcon = `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`;
   ztoolkit.Menu.register("item", {
     tag: "menu",
     id: `${config.addonRef}-itemmenu-root`,
@@ -50,6 +51,26 @@ export function registerItemMenu(_win: Window) {
           }
         },
       },
+      {
+        tag: "menuitem",
+        id: `${config.addonRef}-itemmenu-add-to-batch`,
+        label: getString("menuitem-add-to-batch"),
+        commandListener: () => {
+          addon.hooks.onAddToBatch();
+        },
+      },
     ],
+  });
+}
+
+export function registerToolsMenu(_win: Window) {
+  ztoolkit.Menu.register("menuTools", {
+    tag: "menuitem",
+    id: `${config.addonRef}-tools-batch-parse`,
+    label: getString("menuitem-batch-parse"),
+    icon: menuIcon,
+    commandListener: () => {
+      addon.hooks.onOpenBatchWindow();
+    },
   });
 }

@@ -48,6 +48,27 @@ type ParseOptions = {
   force?: boolean;
 };
 
+export type ParseCallbacks = {
+  onStatusChange?: (status: string, text: string) => void;
+  onProgress?: (progress: number) => void;
+  shouldCancel?: () => boolean;
+};
+
+/** 将 ParseCallbacks 适配为 ProgressLine 接口（供 importMarkdownToNote 使用） */
+function callbacksToProgressLine(
+  callbacks: ParseCallbacks | undefined,
+  statusLabel: string,
+): ProgressLine | undefined {
+  if (!callbacks) return undefined;
+  return {
+    changeLine: (opts: { text?: string; progress?: number }) => {
+      if (opts.text) callbacks.onStatusChange?.(statusLabel, opts.text);
+      if (typeof opts.progress === "number")
+        callbacks.onProgress?.(opts.progress);
+    },
+  };
+}
+
 type CacheMetadata = {
   itemKey: string;
   attachmentKey: string;
@@ -80,87 +101,11 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
     }
 
     const pdfAttachment =
-      getSelectedPdfAttachment() || (await getPdfAttachment(item));
+      getSelectedPdfAttachment() || (await getPdfAttachmentForItem(item));
     if (!pdfAttachment) {
       alertMain(getString("error-no-pdf"));
       return;
     }
-
-    const betterNotes = (Zotero as any).BetterNotes;
-    if (!betterNotes?.api?.convert?.md2html) {
-      alertMain(getString("error-better-notes-missing"));
-      return;
-    }
-
-    const filePath = await pdfAttachment.getFilePathAsync();
-    if (!filePath) {
-      alertMain(getString("error-no-pdf"));
-      return;
-    }
-
-    const fileStat = await IOUtils.stat(filePath);
-    const fileSize =
-      typeof fileStat.size === "number" ? fileStat.size : Number.NaN;
-    if (Number.isFinite(fileSize) && fileSize > MAX_FILE_SIZE) {
-      alertMain(`文件大小超过 200MB：${Math.round(fileSize / 1024 / 1024)}MB`);
-      return;
-    }
-
-    const fileName = PathUtils.filename(filePath);
-    const prefs = getMineruPrefs();
-
-    const cacheHit =
-      !options.force &&
-      (await findCachedMarkdown({
-        itemKey: item.key,
-        attachmentKey: pdfAttachment.key,
-        attachmentSize: Number.isFinite(fileSize) ? fileSize : undefined,
-        attachmentMtime: fileStat.lastModified,
-        modelVersion: prefs.model_version,
-      }));
-
-    if (cacheHit) {
-      progress = new ztoolkit.ProgressWindow(config.addonName, {
-        closeOnClick: true,
-        closeTime: -1,
-      })
-        .createLine({
-          text: getString("status-cache-hit"),
-          type: "default",
-          progress: 40,
-        })
-        .show();
-
-      progress.changeLine({
-        text: getString("status-importing"),
-        progress: 70,
-      });
-      const noteItem = await createItemNote(item);
-      const importResult = await importMarkdownToNote(
-        betterNotes,
-        noteItem,
-        cacheHit,
-        {
-          progress,
-          progressStart: 70,
-          progressEnd: 99,
-        },
-      );
-      progress.changeLine({
-        text: getImportStatusText(importResult),
-        progress: 100,
-      });
-      progress.startCloseTimer?.(4000);
-      return;
-    }
-
-    const token = String(getPref("token") || "").trim();
-    if (!token) {
-      alertMain(getString("error-no-token"));
-      return;
-    }
-
-    const dataId = `${item.key}-${Date.now()}`;
 
     progress = new ztoolkit.ProgressWindow(config.addonName, {
       closeOnClick: true,
@@ -173,59 +118,15 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
       })
       .show();
 
-    const { batchId, uploadUrl } = await createUploadUrl(
-      token,
-      fileName,
-      dataId,
-      prefs,
-    );
-    await uploadFile(uploadUrl, filePath);
-    progress.changeLine({ text: getString("status-queued"), progress: 30 });
-
-    const fullZipUrl = await pollBatchResult(
-      token,
-      batchId,
-      dataId,
-      fileName,
-      progress,
-      prefs,
-    );
-
-    progress.changeLine({
-      text: getString("status-downloading"),
-      progress: 70,
-    });
-    const zipBuffer = await downloadFile(fullZipUrl);
-    const outputDir = await createTempDir(dataId);
-    const mdPath = await extractMarkdown(zipBuffer, outputDir);
-    await writeCacheMetadata(outputDir, {
-      itemKey: item.key,
-      attachmentKey: pdfAttachment.key,
-      attachmentSize: Number.isFinite(fileSize) ? fileSize : undefined,
-      attachmentMtime: fileStat.lastModified,
-      modelVersion: prefs.model_version,
-      mdPath,
-      createdAt: Date.now(),
-      dataId,
-    });
-
-    progress.changeLine({ text: getString("status-importing"), progress: 85 });
-    const noteItem = await createItemNote(item);
-    const importResult = await importMarkdownToNote(
-      betterNotes,
-      noteItem,
-      mdPath,
-      {
-        progress,
-        progressStart: 85,
-        progressEnd: 99,
+    await parseItem(item, pdfAttachment, options, {
+      onStatusChange: (_status, text) => {
+        progress?.changeLine({ text });
       },
-    );
-
-    progress.changeLine({
-      text: getImportStatusText(importResult),
-      progress: 100,
+      onProgress: (value) => {
+        progress?.changeLine({ progress: value });
+      },
     });
+
     progress.startCloseTimer?.(4000);
   } catch (error) {
     const message =
@@ -237,6 +138,136 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
     }
     alertMain(message);
   }
+}
+
+/**
+ * 参数化的单条解析入口，供批量调用。
+ * 不创建 UI、不 alertMain，通过 callbacks 回报进度，错误以 throw 传播。
+ */
+export async function parseItem(
+  item: Zotero.Item,
+  pdfAttachment: Zotero.Item,
+  options: ParseOptions = {},
+  callbacks?: ParseCallbacks,
+): Promise<void> {
+  const betterNotes = (Zotero as any).BetterNotes;
+  if (!betterNotes?.api?.convert?.md2html) {
+    throw new Error(getString("error-better-notes-missing"));
+  }
+
+  const filePath = await pdfAttachment.getFilePathAsync();
+  if (!filePath) {
+    throw new Error(getString("error-no-pdf"));
+  }
+
+  const fileStat = await IOUtils.stat(filePath);
+  const fileSize =
+    typeof fileStat.size === "number" ? fileStat.size : Number.NaN;
+  if (Number.isFinite(fileSize) && fileSize > MAX_FILE_SIZE) {
+    throw new Error(
+      `文件大小超过 200MB：${Math.round(fileSize / 1024 / 1024)}MB`,
+    );
+  }
+
+  const fileName = PathUtils.filename(filePath);
+  const prefs = getMineruPrefs();
+
+  const cacheHit =
+    !options.force &&
+    (await findCachedMarkdown({
+      itemKey: item.key,
+      attachmentKey: pdfAttachment.key,
+      attachmentSize: Number.isFinite(fileSize) ? fileSize : undefined,
+      attachmentMtime: fileStat.lastModified,
+      modelVersion: prefs.model_version,
+    }));
+
+  if (cacheHit) {
+    callbacks?.onStatusChange?.("importing", getString("status-cache-hit"));
+    callbacks?.onProgress?.(40);
+
+    callbacks?.onStatusChange?.("importing", getString("status-importing"));
+    callbacks?.onProgress?.(70);
+    const progress = callbacksToProgressLine(callbacks, "importing");
+    const noteItem = await createItemNote(item);
+    const importResult = await importMarkdownToNote(
+      betterNotes,
+      noteItem,
+      cacheHit,
+      { progress, progressStart: 70, progressEnd: 99 },
+    );
+    callbacks?.onStatusChange?.("done", getImportStatusText(importResult));
+    callbacks?.onProgress?.(100);
+    return;
+  }
+
+  const token = String(getPref("token") || "").trim();
+  if (!token) {
+    throw new Error(getString("error-no-token"));
+  }
+
+  const dataId = `${item.key}-${Date.now()}`;
+
+  callbacks?.onStatusChange?.("uploading", getString("status-uploading"));
+  callbacks?.onProgress?.(10);
+
+  const { batchId, uploadUrl } = await createUploadUrl(
+    token,
+    fileName,
+    dataId,
+    prefs,
+  );
+  await uploadFile(uploadUrl, filePath);
+
+  callbacks?.onStatusChange?.("queued", getString("status-queued"));
+  callbacks?.onProgress?.(30);
+
+  const pollProgress: ProgressLine = {
+    changeLine: (opts: { text?: string; progress?: number }) => {
+      if (opts.text) callbacks?.onStatusChange?.("parsing", opts.text);
+      if (typeof opts.progress === "number")
+        callbacks?.onProgress?.(opts.progress);
+    },
+  };
+  const fullZipUrl = await pollBatchResult(
+    token,
+    batchId,
+    dataId,
+    fileName,
+    pollProgress,
+    prefs,
+    callbacks?.shouldCancel,
+  );
+
+  callbacks?.onStatusChange?.("downloading", getString("status-downloading"));
+  callbacks?.onProgress?.(70);
+  const zipBuffer = await downloadFile(fullZipUrl);
+  const outputDir = await createTempDir(dataId);
+  const mdPath = await extractMarkdown(zipBuffer, outputDir);
+  await writeCacheMetadata(outputDir, {
+    itemKey: item.key,
+    attachmentKey: pdfAttachment.key,
+    attachmentSize: Number.isFinite(fileSize) ? fileSize : undefined,
+    attachmentMtime: fileStat.lastModified,
+    modelVersion: prefs.model_version,
+    mdPath,
+    createdAt: Date.now(),
+    dataId,
+  });
+
+  callbacks?.onStatusChange?.("importing", getString("status-importing"));
+  callbacks?.onProgress?.(85);
+  const importProgress = callbacksToProgressLine(callbacks, "importing");
+  const noteItem = await createItemNote(item);
+  const importResult = await importMarkdownToNote(
+    betterNotes,
+    noteItem,
+    mdPath,
+    { progress: importProgress, progressStart: 85, progressEnd: 99 },
+  );
+
+  callbacks?.onStatusChange?.("done", getImportStatusText(importResult));
+  callbacks?.onProgress?.(100);
 }
 
 function getSelectedItem(): Zotero.Item | null {
@@ -267,7 +298,7 @@ function getSelectedPdfAttachment(): Zotero.Item | null {
   return null;
 }
 
-async function getPdfAttachment(
+export async function getPdfAttachmentForItem(
   item: Zotero.Item,
 ): Promise<Zotero.Item | null> {
   if (item.isAttachment()) {
@@ -529,9 +560,13 @@ async function pollBatchResult(
   fileName: string,
   progress: ProgressLine,
   prefs: ReturnType<typeof getMineruPrefs>,
+  shouldCancel?: () => boolean,
 ) {
   const start = Date.now();
   while (Date.now() - start < prefs.poll_timeout_ms) {
+    if (shouldCancel?.()) {
+      throw new Error("已取消");
+    }
     const res = await fetchJson<MineruBatchResult>(
       `${API_BASE}/api/v4/extract-results/batch/${batchId}`,
       {
@@ -885,4 +920,16 @@ async function writeCacheMetadata(dir: string, meta: CacheMetadata) {
 function stripBeforeFirstHeading(md: string): string {
   const idx = md.search(/^#{1,6}\s/m);
   return idx > 0 ? md.slice(idx) : md;
+}
+
+/** 检查条目是否已有 MinerU 解析笔记 */
+export function hasExistingParsedNote(item: Zotero.Item): boolean {
+  if (!item.isRegularItem()) return false;
+  const noteIDs = item.getNotes();
+  return noteIDs.some((id) => {
+    const note = Zotero.Items.get(id);
+    return (
+      note?.isNote() && note.getTags().some((t) => t.tag === MINERU_NOTE_TAG)
+    );
+  });
 }

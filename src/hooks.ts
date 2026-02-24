@@ -1,7 +1,11 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { registerPrefsWindow } from "./modules/preferenceWindow";
-import { registerItemMenu } from "./modules/menu";
+import { registerItemMenu, registerToolsMenu } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
+import {
+  openBatchWindow,
+  addSelectedItemsToBatch,
+} from "./modules/batch/batchWindow";
 import { getString, initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
 import { getPref } from "./utils/prefs";
@@ -38,6 +42,7 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
     .show();
 
   registerItemMenu(win);
+  registerToolsMenu(win);
   registerShortcut();
 
   popupWin.changeLine({
@@ -78,6 +83,14 @@ async function onParseSelectedItem(options?: { force?: boolean }) {
   await parseSelectedItem(options);
 }
 
+function onOpenBatchWindow() {
+  openBatchWindow();
+}
+
+async function onAddToBatch() {
+  await addSelectedItemsToBatch();
+}
+
 export default {
   onStartup,
   onShutdown,
@@ -85,4 +98,6 @@ export default {
   onMainWindowUnload,
   onPrefsEvent,
   onParseSelectedItem,
+  onOpenBatchWindow,
+  onAddToBatch,
 };
