@@ -1,6 +1,10 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { registerPrefsWindow } from "./modules/preferenceWindow";
-import { registerItemMenu, registerToolsMenu } from "./modules/menu";
+import {
+  registerItemMenu,
+  registerToolsMenu,
+  registerToolbarButton,
+} from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import {
   openBatchWindow,
@@ -43,6 +47,7 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
 
   registerItemMenu(win);
   registerToolsMenu(win);
+  registerToolbarButton(win);
   registerShortcut();
 
   popupWin.changeLine({

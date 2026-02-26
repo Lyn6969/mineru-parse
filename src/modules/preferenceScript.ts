@@ -115,11 +115,33 @@ const PREF_BINDINGS: PrefBinding[] = [
   },
 ];
 
+const TRANSLATE_PREF_BINDINGS: PrefBinding[] = [
+  {
+    id: "mineru-parse-translate-model",
+    key: "translate.model",
+    type: "text",
+    defaultValue: "gpt-4o-mini",
+  },
+  {
+    id: "mineru-parse-translate-target-lang",
+    key: "translate.targetLang",
+    type: "text",
+    defaultValue: "English",
+  },
+  {
+    id: "mineru-parse-translate-system-prompt",
+    key: "translate.systemPrompt",
+    type: "text",
+    defaultValue:
+      "You are a professional academic translator. Translate the following text to {{targetLang}}. Preserve all formatting, mathematical formulas, tables, and technical terms. Output ONLY the translated text, no explanations.",
+  },
+];
+
 function bindPrefEvents() {
   const doc = addon.data.prefs?.window.document;
   if (!doc) return;
 
-  for (const binding of PREF_BINDINGS) {
+  for (const binding of [...PREF_BINDINGS, ...TRANSLATE_PREF_BINDINGS]) {
     const el = doc.querySelector<HTMLElement>(`#${binding.id}`);
     if (!el) continue;
 

@@ -1,8 +1,10 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { analyzeWithAI } from "./ai/analysisService";
+import { translateNote } from "./ai/translateService";
 
 const menuIcon = `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`;
+const toolbarIcon = `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`;
 
 export function registerItemMenu(_win: Window) {
   ztoolkit.Menu.register("item", {
@@ -53,6 +55,30 @@ export function registerItemMenu(_win: Window) {
       },
       {
         tag: "menuitem",
+        id: `${config.addonRef}-itemmenu-translate`,
+        label: getString("menu-translate"),
+        commandListener: async () => {
+          const pane = Zotero.getActiveZoteroPane();
+          const selectedItems = pane?.getSelectedItems() || [];
+          const item = selectedItems[0];
+          if (!item) {
+            Zotero.getMainWindow().alert(getString("error-no-selection"));
+            return;
+          }
+
+          if (item.isNote() && item.parentItem) {
+            await translateNote(item.parentItem, item);
+          } else if (item.isRegularItem()) {
+            await translateNote(item);
+          } else if (item.isAttachment() && item.parentItem?.isRegularItem()) {
+            await translateNote(item.parentItem);
+          } else {
+            Zotero.getMainWindow().alert(getString("error-no-selection"));
+          }
+        },
+      },
+      {
+        tag: "menuitem",
         id: `${config.addonRef}-itemmenu-add-to-batch`,
         label: getString("menuitem-add-to-batch"),
         commandListener: () => {
@@ -73,4 +99,42 @@ export function registerToolsMenu(_win: Window) {
       addon.hooks.onOpenBatchWindow();
     },
   });
+}
+
+export function registerToolbarButton(win: Window) {
+  const doc = win.document;
+  const toolbar = doc.getElementById("zotero-items-toolbar");
+  if (!toolbar) return;
+
+  // 在 spacer 之前插入按钮（spacer 是工具栏左侧按钮和右侧搜索框的分隔）
+  const spacer = toolbar.querySelector("spacer");
+  if (!spacer) return;
+
+  const btnId = `${config.addonRef}-tb-batch-parse`;
+
+  ztoolkit.UI.insertElementBefore(
+    {
+      tag: "toolbarbutton",
+      id: btnId,
+      namespace: "xul",
+      classList: ["zotero-tb-button", "toolbarbutton-1"],
+      attributes: {
+        tooltiptext: getString("toolbar-batch-parse"),
+        tabindex: "-1",
+      },
+      styles: {
+        listStyleImage: `url(${toolbarIcon})`,
+      },
+      listeners: [
+        {
+          type: "command",
+          listener: () => {
+            addon.hooks.onOpenBatchWindow();
+          },
+        },
+      ],
+      ignoreIfExists: true,
+    },
+    spacer as HTMLElement,
+  );
 }

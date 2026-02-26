@@ -17,3 +17,9 @@ pref(
   "你是一位学术论文分析助手，请对以下笔记内容进行深度解读，包括核心观点提炼、方法论分析、关键发现总结等。",
 );
 pref("__prefsPrefix__.ai.promptTemplates", "");
+pref("__prefsPrefix__.translate.model", "gpt-4o-mini");
+pref("__prefsPrefix__.translate.targetLang", "English");
+pref(
+  "__prefsPrefix__.translate.systemPrompt",
+  "You are a professional academic translator. Translate the following text to {{targetLang}}. Preserve all formatting, mathematical formulas, tables, and technical terms. Output ONLY the translated text, no explanations.",
+);

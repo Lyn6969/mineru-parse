@@ -151,6 +151,45 @@
       />
     </vbox>
   </groupbox>
+  <groupbox>
+    <label><html:h2 data-l10n-id="pref-translate-group"></html:h2></label>
+    <hbox align="center">
+      <html:label
+        for="mineru-parse-translate-model"
+        data-l10n-id="pref-translate-model"
+      />
+      <html:input
+        type="text"
+        id="mineru-parse-translate-model"
+        placeholder="gpt-4o-mini"
+      />
+    </hbox>
+    <hbox align="center">
+      <html:label
+        for="mineru-parse-translate-target-lang"
+        data-l10n-id="pref-translate-target-lang"
+      />
+      <html:input
+        type="text"
+        id="mineru-parse-translate-target-lang"
+        placeholder="English"
+      />
+    </hbox>
+    <vbox>
+      <html:label
+        for="mineru-parse-translate-system-prompt"
+        data-l10n-id="pref-translate-system-prompt"
+      />
+      <html:textarea
+        id="mineru-parse-translate-system-prompt"
+        rows="4"
+      ></html:textarea>
+      <html:p
+        style="font-size: 0.85em; opacity: 0.7"
+        data-l10n-id="pref-translate-prompt-help"
+      />
+    </vbox>
+  </groupbox>
   <vbox>
     <html:label
       data-l10n-id="pref-help"

@@ -23,6 +23,9 @@ declare namespace _ZoteroTypes {
       "ai.model": string;
       "ai.systemPrompt": string;
       "ai.promptTemplates": string;
+      "translate.model": string;
+      "translate.targetLang": string;
+      "translate.systemPrompt": string;
     };
   }
 }

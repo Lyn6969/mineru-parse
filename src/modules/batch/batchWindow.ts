@@ -20,10 +20,17 @@ export function openBatchWindow(): Promise<void> {
 
   const items: ReturnType<BatchQueue["getItems"]> = [];
   let tableHelper: any = null;
-  let statsLabel: Element | null = null;
-  let startBtn: Element | null = null;
-  let pauseBtn: Element | null = null;
-  let stopBtn: Element | null = null;
+  let statsLabel: HTMLElement | null = null;
+  let startBtn: HTMLElement | null = null;
+  let pauseBtn: HTMLElement | null = null;
+  let stopBtn: HTMLElement | null = null;
+
+  function setElementText(el: Element | null, text: string) {
+    if (!el) return;
+    (el as any).label = text;
+    (el as any).value = text;
+    (el as HTMLElement).textContent = text;
+  }
 
   let throttleTimer: ReturnType<typeof setTimeout> | null = null;
   let throttlePending = false;
@@ -81,7 +88,7 @@ export function openBatchWindow(): Promise<void> {
   function updateStats() {
     if (!statsLabel) return;
     const stats = queue.getStats();
-    (statsLabel as any).value = getString("batch-stats-summary", {
+    const text = getString("batch-stats-summary", {
       args: {
         total: stats.total,
         pending: stats.pending,
@@ -90,6 +97,7 @@ export function openBatchWindow(): Promise<void> {
         error: stats.error,
       },
     });
+    setElementText(statsLabel, text);
   }
 
   function updateButtonStates(state: QueueState) {
@@ -100,9 +108,10 @@ export function openBatchWindow(): Promise<void> {
 
     (startBtn as any).disabled = !isIdle;
     (pauseBtn as any).disabled = !isRunning && !isPaused;
-    (pauseBtn as any).label = isPaused
-      ? getString("batch-btn-resume")
-      : getString("batch-btn-pause");
+    setElementText(
+      pauseBtn,
+      isPaused ? getString("batch-btn-resume") : getString("batch-btn-pause"),
+    );
     (stopBtn as any).disabled = isIdle;
   }
 
@@ -110,11 +119,11 @@ export function openBatchWindow(): Promise<void> {
 
   // 第 0 行：统计信息栏
   dialog.addCell(0, 0, {
-    tag: "label",
+    tag: "div",
     id: "batch-stats-label",
-    namespace: "xul",
-    attributes: {
-      value: getString("batch-stats-summary", {
+    namespace: "html",
+    properties: {
+      textContent: getString("batch-stats-summary", {
         args: { total: 0, pending: 0, running: 0, done: 0, error: 0 },
       }),
     },
@@ -126,18 +135,23 @@ export function openBatchWindow(): Promise<void> {
 
   // 第 1 行：操作按钮行
   dialog.addCell(1, 0, {
-    tag: "hbox",
-    namespace: "xul",
-    attributes: { align: "center" },
-    styles: { gap: "6px", padding: "4px 8px" },
+    tag: "div",
+    namespace: "html",
+    styles: {
+      display: "flex",
+      alignItems: "center",
+      gap: "6px",
+      padding: "4px 8px",
+      flexWrap: "wrap",
+    },
     children: [
       {
         tag: "button",
-        namespace: "xul",
-        attributes: { label: getString("batch-btn-scan") },
+        namespace: "html",
+        properties: { textContent: getString("batch-btn-scan") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: async () => {
               const count = await queue.scanUnparsed("library");
               refreshTableData();
@@ -154,11 +168,11 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
-        attributes: { label: getString("batch-btn-scan-collection") },
+        namespace: "html",
+        properties: { textContent: getString("batch-btn-scan-collection") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: async () => {
               const count = await queue.scanUnparsed("collection");
               refreshTableData();
@@ -175,11 +189,11 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
-        attributes: { label: getString("batch-btn-add-selected") },
+        namespace: "html",
+        properties: { textContent: getString("batch-btn-add-selected") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: () => {
               const pane = Zotero.getActiveZoteroPane();
               const selected = pane?.getSelectedItems() || [];
@@ -201,11 +215,11 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
-        attributes: { label: getString("batch-btn-clear") },
+        namespace: "html",
+        properties: { textContent: getString("batch-btn-clear") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: () => {
               queue.clear();
               refreshTableData();
@@ -233,19 +247,24 @@ export function openBatchWindow(): Promise<void> {
 
   // 第 3 行：控制按钮行
   dialog.addCell(3, 0, {
-    tag: "hbox",
-    namespace: "xul",
-    attributes: { align: "center" },
-    styles: { gap: "6px", padding: "4px 8px" },
+    tag: "div",
+    namespace: "html",
+    styles: {
+      display: "flex",
+      alignItems: "center",
+      gap: "6px",
+      padding: "4px 8px",
+      flexWrap: "wrap",
+    },
     children: [
       {
         tag: "button",
-        namespace: "xul",
+        namespace: "html",
         id: "batch-btn-start",
-        attributes: { label: getString("batch-btn-start") },
+        properties: { textContent: getString("batch-btn-start") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: async () => {
               if (queue.getCount() === 0) {
                 windowInstance?.alert(getString("batch-no-items"));
@@ -263,15 +282,15 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
+        namespace: "html",
         id: "batch-btn-pause",
-        attributes: {
-          label: getString("batch-btn-pause"),
-          disabled: "true",
+        properties: {
+          textContent: getString("batch-btn-pause"),
+          disabled: true,
         },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: () => {
               if (queue.getState() === "paused") {
                 queue.resume();
@@ -284,15 +303,15 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
+        namespace: "html",
         id: "batch-btn-stop",
-        attributes: {
-          label: getString("batch-btn-stop"),
-          disabled: "true",
+        properties: {
+          textContent: getString("batch-btn-stop"),
+          disabled: true,
         },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: () => {
               queue.stop();
             },
@@ -301,11 +320,11 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
-        attributes: { label: getString("batch-btn-retry-failed") },
+        namespace: "html",
+        properties: { textContent: getString("batch-btn-retry-failed") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: () => {
               queue.retryFailed();
               refreshTableData();
@@ -317,11 +336,11 @@ export function openBatchWindow(): Promise<void> {
       },
       {
         tag: "button",
-        namespace: "xul",
-        attributes: { label: getString("batch-btn-remove-done") },
+        namespace: "html",
+        properties: { textContent: getString("batch-btn-remove-done") },
         listeners: [
           {
-            type: "command",
+            type: "click",
             listener: () => {
               queue.removeCompleted();
               refreshTableData();
@@ -341,10 +360,10 @@ export function openBatchWindow(): Promise<void> {
 
       // 获取 DOM 引用
       const doc = win.document;
-      statsLabel = doc.getElementById("batch-stats-label");
-      startBtn = doc.getElementById("batch-btn-start");
-      pauseBtn = doc.getElementById("batch-btn-pause");
-      stopBtn = doc.getElementById("batch-btn-stop");
+      statsLabel = doc.getElementById("batch-stats-label") as HTMLElement | null;
+      startBtn = doc.getElementById("batch-btn-start") as HTMLElement | null;
+      pauseBtn = doc.getElementById("batch-btn-pause") as HTMLElement | null;
+      stopBtn = doc.getElementById("batch-btn-stop") as HTMLElement | null;
 
       // 初始化 VirtualizedTable
       tableHelper = new ztoolkit.VirtualizedTable(win);
