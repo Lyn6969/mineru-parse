@@ -360,7 +360,9 @@ export function openBatchWindow(): Promise<void> {
 
       // 获取 DOM 引用
       const doc = win.document;
-      statsLabel = doc.getElementById("batch-stats-label") as HTMLElement | null;
+      statsLabel = doc.getElementById(
+        "batch-stats-label",
+      ) as HTMLElement | null;
       startBtn = doc.getElementById("batch-btn-start") as HTMLElement | null;
       pauseBtn = doc.getElementById("batch-btn-pause") as HTMLElement | null;
       stopBtn = doc.getElementById("batch-btn-stop") as HTMLElement | null;
