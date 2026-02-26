@@ -4,6 +4,7 @@ import {
   registerItemMenu,
   registerToolsMenu,
   registerToolbarButton,
+  unregisterMenus,
 } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import {
@@ -68,10 +69,12 @@ function registerShortcut() {
 }
 
 async function onMainWindowUnload(_win: Window): Promise<void> {
+  unregisterMenus();
   ztoolkit.unregisterAll();
 }
 
 function onShutdown(): void {
+  unregisterMenus();
   ztoolkit.unregisterAll();
   addon.data.alive = false;
   // @ts-expect-error - Plugin instance is not typed

@@ -120,7 +120,7 @@ export async function analyzeWithAI(
     progress.startCloseTimer(1500);
   } catch (error) {
     const message = mapAIError(error);
-    ztoolkit.log("[AI Analysis] Error", error);
+    Zotero.debug(`[AI Analysis] Error: ${error}`);
 
     if (progress) {
       progress.changeLine({

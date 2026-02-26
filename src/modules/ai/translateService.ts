@@ -133,7 +133,7 @@ export async function translateNote(
     progress.startCloseTimer(1500);
   } catch (error) {
     const message = mapTranslateError(error);
-    ztoolkit.log("[Translate] Error", error);
+    Zotero.debug(`[Translate] Error: ${error}`);
 
     if (progress) {
       progress.changeLine({

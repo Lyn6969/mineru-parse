@@ -131,7 +131,7 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : String(error || "未知错误");
-    ztoolkit.log("[Mineru Parse] Error", error);
+    Zotero.debug(`[Mineru Parse] Error: ${error}`);
     if (progress) {
       progress.changeLine({ text: message, progress: 100 });
       progress.startCloseTimer?.(6000);
@@ -339,7 +339,7 @@ async function importMarkdownToNote(
   let timingLast = timingStart;
   const logTiming = (step: string) => {
     const now = Date.now();
-    ztoolkit.log(
+    Zotero.debug(
       `[Mineru Parse][timing] ${step} +${now - timingLast}ms total=${
         now - timingStart
       }ms`,
@@ -446,9 +446,8 @@ async function importMarkdownToNote(
 
     importResult.remainingImages = batchResult.failed.length;
     if (batchResult.failed.length > 0) {
-      ztoolkit.log(
-        `[Mineru Parse] Failed to import ${batchResult.failed.length} images:`,
-        batchResult.failed,
+      Zotero.debug(
+        `[Mineru Parse] Failed to import ${batchResult.failed.length} images: ${JSON.stringify(batchResult.failed)}`,
       );
     }
   }
@@ -653,7 +652,7 @@ async function getCacheBaseDir() {
       await ensureDir(customDir);
       return customDir;
     } catch (error) {
-      ztoolkit.log("[Mineru Parse] Cache dir not available", error);
+      Zotero.debug(`[Mineru Parse] Cache dir not available: ${error}`);
     }
   }
   return Zotero.getTempDirectory().path;
@@ -832,7 +831,7 @@ async function readCacheMetadata(dir: string): Promise<CacheMetadata | null> {
     }
     return data;
   } catch (error) {
-    ztoolkit.log("[Mineru Parse] Read cache metadata failed", error);
+    Zotero.debug(`[Mineru Parse] Read cache metadata failed: ${error}`);
     return null;
   }
 }
@@ -911,7 +910,7 @@ async function writeCacheMetadata(dir: string, meta: CacheMetadata) {
   try {
     await IOUtils.writeJSON(metaPath, meta);
   } catch (error) {
-    ztoolkit.log("[Mineru Parse] Write cache metadata failed", error);
+    Zotero.debug(`[Mineru Parse] Write cache metadata failed: ${error}`);
   }
 }
 

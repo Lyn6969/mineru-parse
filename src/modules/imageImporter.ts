@@ -149,7 +149,7 @@ async function readImagesParallel(
         try {
           task.data = await IOUtils.read(task.absolutePath);
         } catch {
-          ztoolkit.log(
+          Zotero.debug(
             `[Mineru Parse] Failed to read image: ${task.absolutePath}`,
           );
         }
@@ -178,7 +178,7 @@ async function createAttachments(
     return srcToKey;
   }
 
-  ztoolkit.log(
+  Zotero.debug(
     `[Mineru Parse] Creating ${total} attachments (${tasks.length - total} skipped - no data)`,
   );
 
@@ -194,9 +194,8 @@ async function createAttachments(
       });
       srcToKey.set(task.src, attachment.key);
     } catch (error) {
-      ztoolkit.log(
-        `[Mineru Parse] Failed to create attachment: ${task.src}`,
-        error,
+      Zotero.debug(
+        `[Mineru Parse] Failed to create attachment: ${task.src}: ${error}`,
       );
     }
     done++;
@@ -256,10 +255,10 @@ export async function batchImportImages(
     return result;
   }
 
-  ztoolkit.log(
+  Zotero.debug(
     `[Mineru Parse] Starting batch import of ${tasks.length} images`,
   );
-  ztoolkit.log(
+  Zotero.debug(
     `[Mineru Parse] fileDir used for path resolution: first task absolutePath = ${tasks[0]?.absolutePath}`,
   );
 
@@ -285,7 +284,7 @@ export async function batchImportImages(
   }
   result.totalTime = Date.now() - startTime;
 
-  ztoolkit.log(
+  Zotero.debug(
     `[Mineru Parse] Batch import completed: ${result.successCount}/${result.totalCount} in ${result.totalTime}ms`,
   );
 
