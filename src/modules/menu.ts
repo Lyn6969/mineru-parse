@@ -127,6 +127,24 @@ export function registerItemMenu(win: Window) {
                 },
               ],
             },
+            {
+              tag: "menuitem",
+              id: `${config.addonRef}-itemmenu-import-parse`,
+              namespace: "xul",
+              classList: ["menuitem-iconic"],
+              attributes: {
+                label: getString("menuitem-import-parse"),
+                image: menuIcon,
+              },
+              listeners: [
+                {
+                  type: "command",
+                  listener: () => {
+                    addon.hooks.onImportAndParse();
+                  },
+                },
+              ],
+            },
           ],
         },
       ],
