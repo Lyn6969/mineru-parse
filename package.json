@@ -14,11 +14,11 @@
     "type": "git",
     "url": "git+https://github.com/LYN6969/mineru-parse.git"
   },
-  "author": "windingwind",
+  "author": "Lyn6969 <liyanan89757@qq.com>",
   "bugs": {
-    "url": "https://mineru.net"
+    "url": "https://github.com/LYN6969/mineru-parse/issues"
   },
-  "homepage": "https://mineru.net",
+  "homepage": "https://github.com/LYN6969/mineru-parse#readme",
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "start": "zotero-plugin serve",
