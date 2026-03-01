@@ -21,6 +21,7 @@ Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attach
 - **One-click PDF to Note** — Right-click any item to parse its PDF and generate a structured note
 - **Auto Parse** — Automatically parse PDF when new attachments are added to items
 - **Import & Parse** — Import the latest PDF from a configured folder and auto-parse it
+- **Batch Parse Window** — Open a dedicated window to detect unparsed selected papers and parse them in queue
 - **AI Analysis** — Send parsed notes to an LLM for intelligent analysis and interpretation; automatically triggers PDF parsing if no parsed note exists; includes 5 built-in prompt templates with full customization (edit, create, delete)
 - **Full content extraction** — Text, mathematical formulas, tables, and images
 - **Smart caching** — Parsed results are cached locally to avoid redundant API calls
@@ -57,13 +58,14 @@ Mineru Parse is a Zotero plugin (supports Zotero 7 & 8) that converts PDF attach
 | **Mineru: Parse PDF to Note**  | Parse the PDF and create a note. Uses cached result if available                         |
 | **Mineru: Force Re-parse**     | Ignore cache and re-upload the PDF for fresh parsing                                     |
 | **Mineru: Import & Parse PDF** | Import the latest PDF from configured folder and auto-parse it                           |
+| **Mineru: Batch Parse Window** | Open the batch task window, detect unparsed selected items, then run batch parse         |
 | **AI Analyze**                 | Send the parsed note to an LLM for analysis; auto-triggers parsing if no note exists yet |
 
 #### Tools Menu
 
-| Menu Item       | Description                                                        |
-| --------------- | ------------------------------------------------------------------ |
-| **Batch Parse** | (Deprecated) Batch parsing has been removed in favor of auto-parse |
+| Menu Item       | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| **Batch Parse** | Open a dedicated batch task window for selected items |
 
 #### Workflow
 
@@ -122,6 +124,7 @@ Import the latest PDF from a configured folder and automatically parse it.
 | **Auto Parse**      | On              | Automatically parse PDF when new attachments are added                                |
 | **Parse Shortcut**  | `Ctrl+M`        | Keyboard shortcut to trigger PDF parsing                                              |
 | **Import Shortcut** | `Ctrl+Shift+M`  | Keyboard shortcut to import and parse PDF                                             |
+| **AI Shortcut**     | `Ctrl+Shift+A`  | Keyboard shortcut to trigger AI analysis for selected item                            |
 | **Import Folder**   | _(empty)_       | Folder path to import PDFs from                                                       |
 
 #### AI Analysis Settings
@@ -170,6 +173,7 @@ src/
 │   ├── autoParse.ts            # Auto-parse PDF when attachments are added
 │   ├── importAndParse.ts       # Import PDF from folder and parse
 │   ├── imageImporter.ts        # Batch image import with parallel I/O
+│   ├── batchParse/             # Batch parse window and queue orchestration
 │   ├── menu.ts                 # Right-click context menu & Tools menu
 │   ├── ai/                     # AI analysis module
 │   │   ├── types.ts            # Type definitions
@@ -221,6 +225,7 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 - **一键 PDF 转笔记** — 右键菜单一键解析 PDF，自动生成结构化笔记
 - **自动解析** — 当条目添加 PDF 附件时自动触发解析
 - **导入并解析** — 从配置的文件夹中导入最新 PDF 并自动解析
+- **批量解析窗口** — 打开独立任务窗口，检测未解析文献并执行批量解析
 - **AI 解读** — 将解析笔记发送给大模型进行智能分析解读；无解析笔记时自动触发全文解析；内置 5 个提示词预设模板，支持编辑、新建、删除
 - **全内容提取** — 支持文本、数学公式、表格和图片
 - **智能缓存** — 解析结果本地缓存，避免重复调用 API
@@ -257,13 +262,14 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7 和 8），通过 [MinerU
 | **Mineru：解析 PDF 到笔记** | 解析 PDF 并创建笔记，优先使用缓存              |
 | **Mineru：强制重新解析**    | 忽略缓存，重新上传 PDF 进行解析                |
 | **Mineru：导入并解析 PDF**  | 从配置的文件夹导入最新 PDF 并自动解析          |
+| **Mineru：批量解析窗口**    | 打开批量任务窗口，检测未解析条目并批量执行解析 |
 | **AI 解读**                 | 将解析笔记发送给大模型分析；无笔记时自动先解析 |
 
 #### 工具菜单
 
-| 菜单项       | 说明                                               |
-| ------------ | -------------------------------------------------- |
-| **批量解析** | （已弃用）批量解析功能已移除，建议使用自动解析功能 |
+| 菜单项       | 说明                                         |
+| ------------ | -------------------------------------------- |
+| **批量解析** | 打开独立批量任务窗口，对选中文献执行批量解析 |
 
 #### 工作流程
 
@@ -370,6 +376,7 @@ src/
 │   ├── autoParse.ts            # 自动解析模块（附件添加时自动触发）
 │   ├── importAndParse.ts       # 导入并解析模块（从文件夹导入 PDF）
 │   ├── imageImporter.ts        # 批量图片导入（并行 I/O）
+│   ├── batchParse/             # 批量解析窗口与队列调度
 │   ├── menu.ts                 # 右键菜单与工具菜单注册
 │   ├── ai/                     # AI 解读模块
 │   │   ├── types.ts            # 类型定义

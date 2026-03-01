@@ -1,0 +1,285 @@
+<?xml version="1.0"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://global/skin/" type="text/css"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://zotero/skin/zotero.css" type="text/css"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero-react-client.css" type="text/css"?>
+<!-- prettier-ignore -->
+<?xml-stylesheet href="chrome://zotero-platform/content/zotero.css" type="text/css"?>
+<!-- prettier-ignore -->
+<!DOCTYPE html>
+<html
+  id="__addonRef__-batchParse"
+  lang="en"
+  xmlns="http://www.w3.org/1999/xhtml"
+  xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+  xmlns:html="http://www.w3.org/1999/xhtml"
+  windowtype="__addonRef__-batchParse"
+  sizemode="normal"
+  scrolling="false"
+  persist="screenX screenY width height sizemode"
+>
+  <head>
+    <title data-l10n-id="batch-window-title"></title>
+    <meta charset="utf-8" />
+    <xul:linkset>
+      <link rel="localization" href="browser/menubar.ftl" />
+      <link rel="localization" href="browser/browserSets.ftl" />
+      <link rel="localization" href="toolkit/global/textActions.ftl" />
+      <link rel="localization" href="zotero.ftl" />
+      <link rel="localization" href="__addonRef__-addon.ftl" />
+    </xul:linkset>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        Services.scriptloader.loadSubScript(
+          "chrome://zotero/content/include.js",
+          this,
+        );
+        window.arguments[0]._initPromise.resolve();
+      });
+    </script>
+    <style>
+      html,
+      body {
+        min-width: 980px;
+        min-height: 560px;
+        margin: 0;
+        height: 100%;
+      }
+
+      body {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+        box-sizing: border-box;
+      }
+
+      .top-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .summary-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .summary-row progress {
+        width: 260px;
+        height: 10px;
+      }
+
+      .actions-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .actions-row .spacer {
+        flex: 1;
+      }
+
+      .filter-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .filter-btn.active {
+        color: var(--accent-blue);
+        border-color: var(--accent-blue);
+      }
+
+      .table-panel {
+        position: relative;
+        flex: 1;
+        overflow: hidden;
+        border: 1px solid var(--fill-secondary);
+        border-radius: 6px;
+      }
+
+      #batch-table-container {
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+      }
+
+      #batch-task-table {
+        height: 100%;
+      }
+
+      #batch-empty {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-color-disabled);
+        pointer-events: none;
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        min-height: 32px;
+      }
+
+      .row:hover {
+        background: color-mix(in srgb, var(--fill-secondary) 28%, transparent);
+      }
+
+      .cell {
+        display: inline-flex;
+        align-items: center;
+        padding-inline: 6px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .batch-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 56px;
+        min-height: 20px;
+        padding: 0 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      .status-badge.is-running {
+        background: color-mix(in srgb, var(--accent-blue) 26%, transparent);
+        color: color-mix(in srgb, var(--accent-blue) 84%, white);
+      }
+
+      .status-badge.is-success {
+        background: color-mix(in srgb, #22c55e 24%, transparent);
+        color: color-mix(in srgb, #22c55e 84%, white);
+      }
+
+      .status-badge.is-failed {
+        background: color-mix(in srgb, #ef4444 22%, transparent);
+        color: color-mix(in srgb, #ef4444 86%, white);
+      }
+
+      .status-badge.is-stopped {
+        background: color-mix(in srgb, #f59e0b 24%, transparent);
+        color: color-mix(in srgb, #f59e0b 86%, white);
+      }
+
+      .status-badge.is-queued {
+        background: color-mix(in srgb, var(--fill-secondary) 36%, transparent);
+        color: var(--text-color-secondary);
+      }
+
+      .status-badge.is-stopping {
+        background: color-mix(in srgb, #f97316 24%, transparent);
+        color: color-mix(in srgb, #f97316 86%, white);
+      }
+
+      .icon-button {
+        width: 18px;
+        height: 18px;
+        min-height: 18px;
+        border: none;
+        background: transparent;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .icon-button.is-stop {
+        color: #f87171;
+      }
+
+      .icon-button.is-parse {
+        color: #60a5fa;
+      }
+
+      .icon-button.is-open {
+        color: #22d3ee;
+      }
+
+      .icon-button.is-locate {
+        color: #94a3b8;
+      }
+
+      .small-button {
+        min-height: 24px;
+        padding: 0 8px;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body class="zotero-window">
+    <div class="top-panel">
+      <div class="summary-row">
+        <label data-l10n-id="batch-window-title"></label>
+        <progress id="batch-overall-progress" max="100" value="0"></progress>
+        <span id="batch-summary"></span>
+      </div>
+
+      <div class="actions-row">
+        <button
+          id="batch-add-selected"
+          data-l10n-id="batch-action-add"
+        ></button>
+        <button
+          id="batch-start-selected"
+          data-l10n-id="batch-action-start-selected"
+        ></button>
+        <button id="batch-start-all" data-l10n-id="batch-action-start"></button>
+        <button id="batch-stop-all" data-l10n-id="batch-action-stop"></button>
+        <button
+          id="batch-clear-finished"
+          data-l10n-id="batch-action-clear"
+        ></button>
+        <button
+          id="batch-open-stats"
+          data-l10n-id="batch-action-stats"
+        ></button>
+        <span class="spacer"></span>
+        <label for="batch-concurrency" data-l10n-id="batch-concurrency"></label>
+        <input
+          id="batch-concurrency"
+          type="number"
+          min="1"
+          max="5"
+          step="1"
+          style="width: 64px"
+        />
+      </div>
+
+      <div class="filter-row">
+        <button class="filter-btn" data-batch-filter="all"></button>
+        <button class="filter-btn" data-batch-filter="queued"></button>
+        <button class="filter-btn" data-batch-filter="running"></button>
+        <button class="filter-btn" data-batch-filter="success"></button>
+        <button class="filter-btn" data-batch-filter="failed"></button>
+        <button class="filter-btn" data-batch-filter="stopped"></button>
+      </div>
+    </div>
+
+    <div class="table-panel">
+      <div id="batch-table-container"></div>
+      <div id="batch-empty"></div>
+    </div>
+  </body>
+</html>

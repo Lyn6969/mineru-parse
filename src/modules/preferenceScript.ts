@@ -257,6 +257,36 @@ function bindShortcutInput() {
       importInput.value = "";
     });
   }
+
+  // AI shortcut
+  const aiInput = doc.querySelector<HTMLInputElement>(
+    "#mineru-parse-shortcut-ai",
+  );
+  const aiClearBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-shortcut-ai-clear",
+  );
+
+  if (aiInput) {
+    const savedAI = getPref("shortcut_ai") as string;
+    if (savedAI) {
+      aiInput.value = new KeyModifier(savedAI).getLocalized();
+    }
+
+    aiInput.addEventListener("keydown", (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (MODIFIER_ONLY_KEYS.has(e.key)) return;
+
+      const km = new KeyModifier(e);
+      setPref("shortcut_ai", km.getRaw());
+      aiInput.value = km.getLocalized();
+    });
+
+    aiClearBtn?.addEventListener("command", () => {
+      setPref("shortcut_ai", "");
+      aiInput.value = "";
+    });
+  }
 }
 
 function loadTemplates(): PromptTemplate[] {

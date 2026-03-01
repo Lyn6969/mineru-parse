@@ -18,8 +18,10 @@ declare namespace _ZoteroTypes {
       "cache_dir": string;
       "poll_interval_ms": number;
       "poll_timeout_ms": number;
+      "batch_parse_concurrency": number;
       "shortcut_parse": string;
       "shortcut_import": string;
+      "shortcut_ai": string;
       "import_folder": string;
       "ai.baseUrl": string;
       "ai.apiKey": string;
