@@ -20,6 +20,7 @@ pref-shortcut-label = 解析快捷键
 pref-shortcut-clear =
     .label = 清除
 pref-shortcut-import-label = 导入快捷键
+pref-shortcut-ai-label = AI 解读快捷键
 pref-import-folder = 导入文件夹
 pref-shortcut-hint = 点击输入框后按下组合键即可设置，清除后禁用快捷键
 pref-ai-group = AI 解读设置

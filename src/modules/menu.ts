@@ -4,6 +4,7 @@ import { analyzeWithAI } from "./ai/analysisService";
 import { translateNote } from "./ai/translateService";
 
 const menuIcon = `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`;
+let toolsMenuRegistered = false;
 
 /**
  * 将选中条目分发到对应的 AI 服务函数
@@ -145,6 +146,24 @@ export function registerItemMenu(win: Window) {
                 },
               ],
             },
+            {
+              tag: "menuitem",
+              id: `${config.addonRef}-itemmenu-batch-window`,
+              namespace: "xul",
+              classList: ["menuitem-iconic"],
+              attributes: {
+                label: getString("menuitem-batch-window"),
+                image: menuIcon,
+              },
+              listeners: [
+                {
+                  type: "command",
+                  listener: () => {
+                    addon.hooks.onOpenBatchParseWindow();
+                  },
+                },
+              ],
+            },
           ],
         },
       ],
@@ -154,9 +173,35 @@ export function registerItemMenu(win: Window) {
 }
 
 /**
- * 注册 Tools 主菜单项（DOM 方式，逐窗口）
+ * 注册 Tools 主菜单项（使用 MenuManager API）
  */
-export function registerToolsMenu(_win: Window) {}
+export function registerToolsMenu(_win: Window) {
+  if (toolsMenuRegistered) return;
+
+  const menuManager = (Zotero as any).MenuManager;
+  if (!menuManager?.registerMenu) return;
+
+  menuManager.registerMenu({
+    menuID: `${config.addonRef}-menuTools`,
+    pluginID: config.addonID,
+    target: "main/menubar/tools",
+    menus: [
+      {
+        menuType: "separator",
+      },
+      {
+        menuType: "menuitem",
+        l10nID: `${config.addonRef}-menu-tools-batch-window`,
+        icon: menuIcon,
+        onCommand: () => {
+          addon.hooks.onOpenBatchParseWindow();
+        },
+      },
+    ],
+  });
+
+  toolsMenuRegistered = true;
+}
 
 /**
  * 注册工具栏按钮

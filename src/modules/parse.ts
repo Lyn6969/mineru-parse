@@ -89,7 +89,14 @@ type ImportOptions = {
   progress?: ProgressLine;
   progressStart?: number;
   progressEnd?: number;
+  shouldCancel?: () => boolean;
 };
+
+function throwIfCancelled(shouldCancel?: () => boolean) {
+  if (shouldCancel?.()) {
+    throw new Error("已取消");
+  }
+}
 
 export async function parseSelectedItem(options: ParseOptions = {}) {
   let progress: ProgressLine | null = null;
@@ -171,6 +178,7 @@ export async function parseItem(
 
   const fileName = PathUtils.filename(filePath);
   const prefs = getMineruPrefs();
+  throwIfCancelled(callbacks?.shouldCancel);
 
   const cacheHit =
     !options.force &&
@@ -188,13 +196,19 @@ export async function parseItem(
 
     callbacks?.onStatusChange?.("importing", getString("status-importing"));
     callbacks?.onProgress?.(70);
+    throwIfCancelled(callbacks?.shouldCancel);
     const progress = callbacksToProgressLine(callbacks, "importing");
     const noteItem = await createItemNote(item);
     const importResult = await importMarkdownToNote(
       betterNotes,
       noteItem,
       cacheHit,
-      { progress, progressStart: 70, progressEnd: 99 },
+      {
+        progress,
+        progressStart: 70,
+        progressEnd: 99,
+        shouldCancel: callbacks?.shouldCancel,
+      },
     );
     callbacks?.onStatusChange?.("done", getImportStatusText(importResult));
     callbacks?.onProgress?.(100);
@@ -210,6 +224,7 @@ export async function parseItem(
 
   callbacks?.onStatusChange?.("uploading", getString("status-uploading"));
   callbacks?.onProgress?.(10);
+  throwIfCancelled(callbacks?.shouldCancel);
 
   const { batchId, uploadUrl } = await createUploadUrl(
     token,
@@ -217,7 +232,9 @@ export async function parseItem(
     dataId,
     prefs,
   );
+  throwIfCancelled(callbacks?.shouldCancel);
   await uploadFile(uploadUrl, filePath);
+  throwIfCancelled(callbacks?.shouldCancel);
 
   callbacks?.onStatusChange?.("queued", getString("status-queued"));
   callbacks?.onProgress?.(30);
@@ -238,10 +255,12 @@ export async function parseItem(
     prefs,
     callbacks?.shouldCancel,
   );
+  throwIfCancelled(callbacks?.shouldCancel);
 
   callbacks?.onStatusChange?.("downloading", getString("status-downloading"));
   callbacks?.onProgress?.(70);
   const zipBuffer = await downloadFile(fullZipUrl);
+  throwIfCancelled(callbacks?.shouldCancel);
   const outputDir = await createTempDir(dataId);
   const mdPath = await extractMarkdown(zipBuffer, outputDir);
   await writeCacheMetadata(outputDir, {
@@ -257,13 +276,19 @@ export async function parseItem(
 
   callbacks?.onStatusChange?.("importing", getString("status-importing"));
   callbacks?.onProgress?.(85);
+  throwIfCancelled(callbacks?.shouldCancel);
   const importProgress = callbacksToProgressLine(callbacks, "importing");
   const noteItem = await createItemNote(item);
   const importResult = await importMarkdownToNote(
     betterNotes,
     noteItem,
     mdPath,
-    { progress: importProgress, progressStart: 85, progressEnd: 99 },
+    {
+      progress: importProgress,
+      progressStart: 85,
+      progressEnd: 99,
+      shouldCancel: callbacks?.shouldCancel,
+    },
   );
 
   callbacks?.onStatusChange?.("done", getImportStatusText(importResult));
@@ -283,6 +308,14 @@ function getSelectedItem(): Zotero.Item | null {
       : null;
   }
   return item.isRegularItem() ? item : null;
+}
+
+export function getItemTitle(item: Zotero.Item): string {
+  const title = String(item.getField("title") || "").trim();
+  if (title) return title;
+  const fallback = String((item as any).getDisplayTitle?.() || "").trim();
+  if (fallback) return fallback;
+  return item.key;
 }
 
 function getSelectedPdfAttachment(): Zotero.Item | null {
@@ -335,6 +368,7 @@ async function importMarkdownToNote(
   mdPath: string,
   options: ImportOptions = {},
 ): Promise<ImportResult> {
+  throwIfCancelled(options.shouldCancel);
   const timingStart = Date.now();
   let timingLast = timingStart;
   const logTiming = (step: string) => {
@@ -363,6 +397,7 @@ async function importMarkdownToNote(
     text?: string,
     value?: number,
   ): Promise<void> => {
+    throwIfCancelled(options.shouldCancel);
     if (!options.progress) {
       return;
     }
@@ -379,6 +414,7 @@ async function importMarkdownToNote(
     mdPath,
     "utf-8",
   )) as string;
+  throwIfCancelled(options.shouldCancel);
   logTiming("read-md");
   await updateProgress(getString("status-importing"), progressStart);
 
@@ -389,6 +425,7 @@ async function importMarkdownToNote(
 
   const content = stripBeforeFirstHeading(contentRaw);
   let htmlContent = await betterNotes.api.convert.md2html(content);
+  throwIfCancelled(options.shouldCancel);
   logTiming("md2html");
 
   const convertProgressEnd = progressStart + Math.round(progressSpan * 0.15);
@@ -400,6 +437,7 @@ async function importMarkdownToNote(
   const imageSrcs = extractImagePathsFromHtml(htmlContent);
   const imageTasks = prepareImageTasks(imageSrcs, fileDir);
   logTiming(`prepare-images (${imageTasks.length} images)`);
+  throwIfCancelled(options.shouldCancel);
 
   // 阶段 4：高性能批量导入图片
   const imageProgressStart = convertProgressEnd;
@@ -412,6 +450,7 @@ async function importMarkdownToNote(
   };
 
   if (imageTasks.length > 0) {
+    throwIfCancelled(options.shouldCancel);
     const batchResult = await batchImportImages(noteItem, imageTasks, {
       concurrency: 8,
       onProgress: (done, total, phase) => {
@@ -439,6 +478,7 @@ async function importMarkdownToNote(
     logTiming(
       `batch-import (${batchResult.successCount}/${batchResult.totalCount})`,
     );
+    throwIfCancelled(options.shouldCancel);
 
     // 阶段 5：替换 HTML 中的图片路径为附件引用
     htmlContent = replaceImageSrcs(htmlContent, batchResult.srcToKey);
@@ -453,6 +493,7 @@ async function importMarkdownToNote(
   }
 
   await updateProgress(getString("status-importing"), imageProgressEnd);
+  throwIfCancelled(options.shouldCancel);
 
   // 阶段 6：保存笔记
   const noteStatus = betterNotes.api?.sync?.getNoteStatus?.(noteItem.id) || {

@@ -7,6 +7,8 @@ import {
 } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import { importLatestPdfAndParse } from "./modules/importAndParse";
+import { openBatchParseWindow } from "./modules/batchParse/window";
+import { analyzeWithAI } from "./modules/ai/analysisService";
 import {
   registerAutoParseObserver,
   unregisterAutoParseObserver,
@@ -73,6 +75,13 @@ function registerShortcut() {
     if (importKey && keyboard.equals(importKey)) {
       event.preventDefault();
       addon.hooks.onImportAndParse();
+      return;
+    }
+
+    const aiKey = getPref("shortcut_ai") as string;
+    if (aiKey && keyboard.equals(aiKey)) {
+      event.preventDefault();
+      addon.hooks.onAnalyzeSelectedItem();
     }
   });
 }
@@ -103,6 +112,43 @@ async function onImportAndParse() {
   await importLatestPdfAndParse();
 }
 
+async function onAnalyzeSelectedItem() {
+  await dispatchSelectedItem(analyzeWithAI);
+}
+
+async function onOpenBatchParseWindow() {
+  await openBatchParseWindow();
+}
+
+async function dispatchSelectedItem(
+  handler: (parent: Zotero.Item, note?: Zotero.Item) => Promise<void>,
+) {
+  const pane = Zotero.getActiveZoteroPane();
+  const selectedItems = pane?.getSelectedItems() || [];
+  const item = selectedItems[0];
+  if (!item) {
+    Zotero.getMainWindow().alert(getString("error-no-selection"));
+    return;
+  }
+
+  if (item.isNote() && item.parentItem) {
+    await handler(item.parentItem, item);
+    return;
+  }
+
+  if (item.isRegularItem()) {
+    await handler(item);
+    return;
+  }
+
+  if (item.isAttachment() && item.parentItem?.isRegularItem()) {
+    await handler(item.parentItem);
+    return;
+  }
+
+  Zotero.getMainWindow().alert(getString("error-no-selection"));
+}
+
 export default {
   onStartup,
   onShutdown,
@@ -111,4 +157,6 @@ export default {
   onPrefsEvent,
   onParseSelectedItem,
   onImportAndParse,
+  onAnalyzeSelectedItem,
+  onOpenBatchParseWindow,
 };
