@@ -1,9 +1,6 @@
 import { config } from "../../package.json";
 import { getPref } from "../utils/prefs";
-import {
-  parseItem,
-  hasExistingParsedNote,
-} from "./parse";
+import { parseItem, hasExistingParsedNote } from "./parse";
 
 let observerID: string | false = false;
 let queue: Zotero.Item[] = [];
@@ -29,11 +26,7 @@ export function registerAutoParseObserver() {
 
   observerID = Zotero.Notifier.registerObserver(
     {
-      notify: async (
-        event: string,
-        type: string,
-        ids: (string | number)[],
-      ) => {
+      notify: async (event: string, type: string, ids: (string | number)[]) => {
         if (type !== "item") return;
         if (event !== "add" && event !== "modify") return;
         if (!getPref("auto_parse")) return;
@@ -87,10 +80,7 @@ async function processQueue() {
     closeTime: -1,
   })
     .createLine({
-      text: localeText(
-        `自动解析：0/${total}`,
-        `Auto parse: 0/${total}`,
-      ),
+      text: localeText(`自动解析：0/${total}`, `Auto parse: 0/${total}`),
       type: "default",
       progress: 0,
     })
@@ -111,20 +101,25 @@ async function processQueue() {
     }
 
     try {
-      await parseItem(parent, pdfAttachment, {}, {
-        onStatusChange: (_status, text) => {
-          progress.changeLine({
-            text: localeText(
-              `自动解析 ${done + 1}/${total}：${text}`,
-              `Auto parse ${done + 1}/${total}: ${text}`,
-            ),
-          });
+      await parseItem(
+        parent,
+        pdfAttachment,
+        {},
+        {
+          onStatusChange: (_status, text) => {
+            progress.changeLine({
+              text: localeText(
+                `自动解析 ${done + 1}/${total}：${text}`,
+                `Auto parse ${done + 1}/${total}: ${text}`,
+              ),
+            });
+          },
+          onProgress: (value) => {
+            const overall = ((done + value / 100) / total) * 100;
+            progress.changeLine({ progress: Math.round(overall) });
+          },
         },
-        onProgress: (value) => {
-          const overall = ((done + value / 100) / total) * 100;
-          progress.changeLine({ progress: Math.round(overall) });
-        },
-      });
+      );
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e);
       Zotero.debug(
@@ -156,7 +151,9 @@ async function processQueue() {
 }
 
 function updateProgress(
-  progress: ReturnType<InstanceType<typeof ztoolkit.ProgressWindow>["createLine"]>,
+  progress: ReturnType<
+    InstanceType<typeof ztoolkit.ProgressWindow>["createLine"]
+  >,
   done: number,
   total: number,
 ) {
@@ -170,5 +167,9 @@ function updateProgress(
 }
 
 function localeText(zh: string, en: string): string {
-  return String(Zotero.locale || "").toLowerCase().startsWith("zh") ? zh : en;
+  return String(Zotero.locale || "")
+    .toLowerCase()
+    .startsWith("zh")
+    ? zh
+    : en;
 }
