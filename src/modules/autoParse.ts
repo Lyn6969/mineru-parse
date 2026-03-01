@@ -3,7 +3,16 @@ import { getPref } from "../utils/prefs";
 import { parseItem, hasExistingParsedNote } from "./parse";
 
 let observerID: string | false = false;
-const activeParents = new Set<number>();
+const inFlightParents = new Set<number>();
+const suppressedParents = new Set<number>();
+
+export function suppressAutoParse(parentId: number) {
+  suppressedParents.add(parentId);
+}
+
+export function unsuppressAutoParse(parentId: number) {
+  suppressedParents.delete(parentId);
+}
 
 export function registerAutoParseObserver() {
   if (observerID !== false) return;
@@ -22,7 +31,11 @@ export function registerAutoParseObserver() {
 
             const parent = item.parentItem;
             if (!parent?.isRegularItem()) continue;
-            if (activeParents.has(parent.id)) continue;
+            if (
+              inFlightParents.has(parent.id) ||
+              suppressedParents.has(parent.id)
+            )
+              continue;
             if (hasExistingParsedNote(parent)) continue;
 
             // Fire and forget — each PDF parses independently
@@ -44,13 +57,14 @@ export function unregisterAutoParseObserver() {
   if (observerID !== false) {
     Zotero.Notifier.unregisterObserver(observerID);
     observerID = false;
-    activeParents.clear();
+    inFlightParents.clear();
+    suppressedParents.clear();
     Zotero.debug("[Mineru Parse] Auto-parse observer unregistered");
   }
 }
 
 async function startAutoParse(parent: Zotero.Item, pdfAttachment: Zotero.Item) {
-  activeParents.add(parent.id);
+  inFlightParents.add(parent.id);
   const title = String(parent.getField("title") || "");
   const short = title.length > 30 ? title.slice(0, 30) + "…" : title;
 
@@ -94,7 +108,7 @@ async function startAutoParse(parent: Zotero.Item, pdfAttachment: Zotero.Item) {
   }
 
   progress.startCloseTimer?.(4000);
-  activeParents.delete(parent.id);
+  inFlightParents.delete(parent.id);
 }
 
 function localeText(zh: string, en: string): string {

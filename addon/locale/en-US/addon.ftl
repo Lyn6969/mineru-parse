@@ -34,6 +34,7 @@ ai-error-auth = API key is invalid or expired
 ai-error-ratelimit = Request rate limit exceeded. Please try again later
 ai-error-timeout = Request timed out. Please try again later
 ai-error-generic = AI analysis failed
+menuitem-import-parse = Import PDF & Parse
 menu-translate = Translate Note
 translate-progress-title = Translation
 translate-progress-requesting = Requesting translation...

@@ -6,6 +6,7 @@ import {
   registerToolbarButton,
 } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
+import { importLatestPdfAndParse } from "./modules/importAndParse";
 import {
   registerAutoParseObserver,
   unregisterAutoParseObserver,
@@ -59,11 +60,19 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
 
 function registerShortcut() {
   ztoolkit.Keyboard.register((event, { keyboard }) => {
-    const shortcutStr = getPref("shortcut_parse") as string;
-    if (!shortcutStr || !keyboard) return;
-    if (keyboard.equals(shortcutStr)) {
+    if (!keyboard) return;
+
+    const parseKey = getPref("shortcut_parse") as string;
+    if (parseKey && keyboard.equals(parseKey)) {
       event.preventDefault();
       addon.hooks.onParseSelectedItem();
+      return;
+    }
+
+    const importKey = getPref("shortcut_import") as string;
+    if (importKey && keyboard.equals(importKey)) {
+      event.preventDefault();
+      addon.hooks.onImportAndParse();
     }
   });
 }
@@ -90,6 +99,10 @@ async function onParseSelectedItem(options?: { force?: boolean }) {
   await parseSelectedItem(options);
 }
 
+async function onImportAndParse() {
+  await importLatestPdfAndParse();
+}
+
 export default {
   onStartup,
   onShutdown,
@@ -97,4 +110,5 @@ export default {
   onMainWindowUnload,
   onPrefsEvent,
   onParseSelectedItem,
+  onImportAndParse,
 };

@@ -95,6 +95,12 @@ const PREF_BINDINGS: PrefBinding[] = [
     defaultValue: 900000,
   },
   {
+    id: "mineru-parse-import-folder",
+    key: "import_folder",
+    type: "text",
+    defaultValue: "",
+  },
+  {
     id: "mineru-parse-ai-base-url",
     key: "ai.baseUrl",
     type: "text",
@@ -221,6 +227,36 @@ function bindShortcutInput() {
     setPref("shortcut_parse", "");
     input.value = "";
   });
+
+  // Import shortcut
+  const importInput = doc.querySelector<HTMLInputElement>(
+    "#mineru-parse-shortcut-import",
+  );
+  const importClearBtn = doc.querySelector<HTMLElement>(
+    "#mineru-parse-shortcut-import-clear",
+  );
+
+  if (importInput) {
+    const savedImport = getPref("shortcut_import") as string;
+    if (savedImport) {
+      importInput.value = new KeyModifier(savedImport).getLocalized();
+    }
+
+    importInput.addEventListener("keydown", (e: KeyboardEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (MODIFIER_ONLY_KEYS.has(e.key)) return;
+
+      const km = new KeyModifier(e);
+      setPref("shortcut_import", km.getRaw());
+      importInput.value = km.getLocalized();
+    });
+
+    importClearBtn?.addEventListener("command", () => {
+      setPref("shortcut_import", "");
+      importInput.value = "";
+    });
+  }
 }
 
 function loadTemplates(): PromptTemplate[] {

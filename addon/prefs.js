@@ -10,6 +10,8 @@ pref("__prefsPrefix__.cache_dir", "");
 pref("__prefsPrefix__.poll_interval_ms", 3000);
 pref("__prefsPrefix__.poll_timeout_ms", 900000);
 pref("__prefsPrefix__.shortcut_parse", "control,m");
+pref("__prefsPrefix__.shortcut_import", "control,shift,m");
+pref("__prefsPrefix__.import_folder", "");
 pref("__prefsPrefix__.ai.baseUrl", "https://api.openai.com/v1");
 pref("__prefsPrefix__.ai.apiKey", "");
 pref("__prefsPrefix__.ai.model", "gpt-4o");
