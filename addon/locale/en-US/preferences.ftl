@@ -1,5 +1,7 @@
 pref-title = Mineru Parse Preferences
 pref-token = Token
+pref-auto-parse =
+    .label = Auto-parse new PDFs
 pref-model-version = Model Version
 pref-is-ocr =
     .label = Enable OCR

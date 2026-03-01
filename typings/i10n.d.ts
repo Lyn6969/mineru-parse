@@ -37,6 +37,7 @@ export type FluentMessageId =
   | 'pref-ai-reset-templates'
   | 'pref-ai-save-template'
   | 'pref-ai-system-prompt'
+  | 'pref-auto-parse'
   | 'pref-cache-dir'
   | 'pref-enable-formula'
   | 'pref-enable-table'

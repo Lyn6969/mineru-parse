@@ -6,6 +6,10 @@ import {
   registerToolbarButton,
 } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
+import {
+  registerAutoParseObserver,
+  unregisterAutoParseObserver,
+} from "./modules/autoParse";
 import { getString, initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
 import { getPref } from "./utils/prefs";
@@ -45,6 +49,7 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
   registerToolsMenu(win);
   registerToolbarButton(win);
   registerShortcut();
+  registerAutoParseObserver();
 
   popupWin.changeLine({
     progress: 100,
@@ -68,6 +73,7 @@ async function onMainWindowUnload(_win: Window): Promise<void> {
 }
 
 function onShutdown(): void {
+  unregisterAutoParseObserver();
   ztoolkit.unregisterAll();
   addon.data.alive = false;
   // @ts-expect-error - Plugin instance is not typed

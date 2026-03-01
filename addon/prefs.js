@@ -1,4 +1,5 @@
 pref("__prefsPrefix__.token", "");
+pref("__prefsPrefix__.auto_parse", true);
 pref("__prefsPrefix__.model_version", "pipeline");
 pref("__prefsPrefix__.is_ocr", false);
 pref("__prefsPrefix__.enable_formula", true);

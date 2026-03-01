@@ -8,6 +8,7 @@ declare namespace _ZoteroTypes {
   interface Prefs {
     PluginPrefsMap: {
       "token": string;
+      "auto_parse": boolean;
       "model_version": string;
       "is_ocr": boolean;
       "enable_formula": boolean;

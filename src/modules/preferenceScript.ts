@@ -60,6 +60,7 @@ type PrefBinding = {
 
 const PREF_BINDINGS: PrefBinding[] = [
   { id: "mineru-parse-token", key: "token", type: "text" },
+  { id: "mineru-parse-auto-parse", key: "auto_parse", type: "checkbox" },
   {
     id: "mineru-parse-model-version",
     key: "model_version",

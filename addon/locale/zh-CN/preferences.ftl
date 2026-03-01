@@ -1,5 +1,7 @@
 pref-title = Mineru 解析设置
 pref-token = Token
+pref-auto-parse =
+    .label = 自动解析新导入的 PDF
 pref-model-version = 解析模型
 pref-is-ocr =
     .label = 启用 OCR
