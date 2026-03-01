@@ -4,13 +4,8 @@ import {
   registerItemMenu,
   registerToolsMenu,
   registerToolbarButton,
-  unregisterMenus,
 } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
-import {
-  openBatchWindow,
-  addSelectedItemsToBatch,
-} from "./modules/batch/batchWindow";
 import { getString, initLocale } from "./utils/locale";
 import { createZToolkit } from "./utils/ztoolkit";
 import { getPref } from "./utils/prefs";
@@ -69,12 +64,10 @@ function registerShortcut() {
 }
 
 async function onMainWindowUnload(_win: Window): Promise<void> {
-  unregisterMenus();
   ztoolkit.unregisterAll();
 }
 
 function onShutdown(): void {
-  unregisterMenus();
   ztoolkit.unregisterAll();
   addon.data.alive = false;
   // @ts-expect-error - Plugin instance is not typed
@@ -91,14 +84,6 @@ async function onParseSelectedItem(options?: { force?: boolean }) {
   await parseSelectedItem(options);
 }
 
-function onOpenBatchWindow() {
-  openBatchWindow();
-}
-
-async function onAddToBatch() {
-  await addSelectedItemsToBatch();
-}
-
 export default {
   onStartup,
   onShutdown,
@@ -106,6 +91,4 @@ export default {
   onMainWindowUnload,
   onPrefsEvent,
   onParseSelectedItem,
-  onOpenBatchWindow,
-  onAddToBatch,
 };
