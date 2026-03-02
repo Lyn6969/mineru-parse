@@ -240,20 +240,32 @@
         <button
           id="batch-add-selected"
           data-l10n-id="batch-action-add"
+          title=""
         ></button>
         <button
           id="batch-start-selected"
           data-l10n-id="batch-action-start-selected"
+          title=""
         ></button>
-        <button id="batch-start-all" data-l10n-id="batch-action-start"></button>
-        <button id="batch-stop-all" data-l10n-id="batch-action-stop"></button>
+        <button
+          id="batch-start-all"
+          data-l10n-id="batch-action-start"
+          title=""
+        ></button>
+        <button
+          id="batch-stop-all"
+          data-l10n-id="batch-action-stop"
+          title=""
+        ></button>
         <button
           id="batch-clear-finished"
           data-l10n-id="batch-action-clear"
+          title=""
         ></button>
         <button
           id="batch-open-stats"
           data-l10n-id="batch-action-stats"
+          title=""
         ></button>
         <span class="spacer"></span>
         <label for="batch-concurrency" data-l10n-id="batch-concurrency"></label>
@@ -264,16 +276,30 @@
           max="5"
           step="1"
           style="width: 64px"
+          data-l10n-id="batch-concurrency"
+          aria-label=""
         />
       </div>
 
       <div class="filter-row">
-        <button class="filter-btn" data-batch-filter="all"></button>
-        <button class="filter-btn" data-batch-filter="queued"></button>
-        <button class="filter-btn" data-batch-filter="running"></button>
-        <button class="filter-btn" data-batch-filter="success"></button>
-        <button class="filter-btn" data-batch-filter="failed"></button>
-        <button class="filter-btn" data-batch-filter="stopped"></button>
+        <button class="filter-btn" data-batch-filter="all" title=""></button>
+        <button class="filter-btn" data-batch-filter="queued" title=""></button>
+        <button
+          class="filter-btn"
+          data-batch-filter="running"
+          title=""
+        ></button>
+        <button
+          class="filter-btn"
+          data-batch-filter="success"
+          title=""
+        ></button>
+        <button class="filter-btn" data-batch-filter="failed" title=""></button>
+        <button
+          class="filter-btn"
+          data-batch-filter="stopped"
+          title=""
+        ></button>
       </div>
     </div>
 
