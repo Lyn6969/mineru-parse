@@ -121,6 +121,9 @@ export async function importLatestPdfAndParse() {
       progress: 20,
     });
 
+    // Import succeeded, remove the exact source PDF selected from import_folder.
+    await removeImportedSourcePdf(newest.path);
+
     // Parse
     await parseItem(
       item,
@@ -160,4 +163,23 @@ function localeText(zh: string, en: string): string {
     .startsWith("zh")
     ? zh
     : en;
+}
+
+async function removeImportedSourcePdf(filePath: string): Promise<void> {
+  if (!isPdfPath(filePath)) {
+    return;
+  }
+
+  try {
+    await IOUtils.remove(filePath, { ignoreAbsent: true });
+    Zotero.debug(`[Mineru Parse] Removed source PDF: ${filePath}`);
+  } catch (error) {
+    Zotero.debug(
+      `[Mineru Parse] Failed to remove source PDF (${filePath}): ${error}`,
+    );
+  }
+}
+
+function isPdfPath(path: string): boolean {
+  return path.toLowerCase().endsWith(".pdf");
 }
