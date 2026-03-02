@@ -226,6 +226,10 @@
         padding: 0 8px;
         font-size: 12px;
       }
+
+      #batch-concurrency {
+        width: 64px;
+      }
     </style>
   </head>
   <body class="zotero-window">
@@ -240,21 +244,21 @@
         <button
           id="batch-add-selected"
           data-l10n-id="batch-action-add"
-        ></button>
+        >Add</button>
         <button
           id="batch-start-selected"
           data-l10n-id="batch-action-start-selected"
-        ></button>
-        <button id="batch-start-all" data-l10n-id="batch-action-start"></button>
-        <button id="batch-stop-all" data-l10n-id="batch-action-stop"></button>
+        >Start Selected</button>
+        <button id="batch-start-all" data-l10n-id="batch-action-start">Start All</button>
+        <button id="batch-stop-all" data-l10n-id="batch-action-stop">Stop All</button>
         <button
           id="batch-clear-finished"
           data-l10n-id="batch-action-clear"
-        ></button>
+        >Clear</button>
         <button
           id="batch-open-stats"
           data-l10n-id="batch-action-stats"
-        ></button>
+        >Stats</button>
         <span class="spacer"></span>
         <label for="batch-concurrency" data-l10n-id="batch-concurrency"></label>
         <input
@@ -263,17 +267,17 @@
           min="1"
           max="5"
           step="1"
-          style="width: 64px"
+          aria-label="Concurrency"
         />
       </div>
 
       <div class="filter-row">
-        <button class="filter-btn" data-batch-filter="all"></button>
-        <button class="filter-btn" data-batch-filter="queued"></button>
-        <button class="filter-btn" data-batch-filter="running"></button>
-        <button class="filter-btn" data-batch-filter="success"></button>
-        <button class="filter-btn" data-batch-filter="failed"></button>
-        <button class="filter-btn" data-batch-filter="stopped"></button>
+        <button class="filter-btn" data-batch-filter="all" aria-label="All">All</button>
+        <button class="filter-btn" data-batch-filter="queued" aria-label="Queued">Queued</button>
+        <button class="filter-btn" data-batch-filter="running" aria-label="Running">Running</button>
+        <button class="filter-btn" data-batch-filter="success" aria-label="Done">Done</button>
+        <button class="filter-btn" data-batch-filter="failed" aria-label="Failed">Failed</button>
+        <button class="filter-btn" data-batch-filter="stopped" aria-label="Stopped">Stopped</button>
       </div>
     </div>
 
