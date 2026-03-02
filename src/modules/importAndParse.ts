@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
 import { getPref } from "../utils/prefs";
-import { parseItem } from "./parse";
+import { isCancelError, parseItem } from "./parse";
 import { suppressAutoParse, unsuppressAutoParse } from "./autoParse";
 
 /**
@@ -128,7 +128,7 @@ export async function importLatestPdfAndParse() {
     await parseItem(
       item,
       pdfAttachment,
-      {},
+      { source: "import" },
       {
         onStatusChange: (_status, text) => {
           progress.changeLine({ text });
@@ -144,10 +144,17 @@ export async function importLatestPdfAndParse() {
       progress: 100,
     });
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    Zotero.debug(`[Mineru Parse] Import and parse failed: ${msg}`);
+    const cancelled = isCancelError(e);
+    const msg = cancelled
+      ? getString("status-cancelled-parse")
+      : e instanceof Error
+        ? e.message
+        : String(e);
+    Zotero.debug(
+      `[Mineru Parse] Import and parse ${cancelled ? "cancelled" : "failed"}: ${msg}`,
+    );
     progress.changeLine({
-      text: localeText(`失败：${msg}`, `Failed: ${msg}`),
+      text: cancelled ? msg : localeText(`失败：${msg}`, `Failed: ${msg}`),
       progress: 100,
     });
   } finally {

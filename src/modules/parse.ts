@@ -46,13 +46,26 @@ type ProgressLine = {
 
 type ParseOptions = {
   force?: boolean;
+  source?: "manual" | "import" | "batch" | "auto";
+};
+
+export type LargePdfConfirmContext = {
+  item: Zotero.Item;
+  pdfAttachment: Zotero.Item;
+  pageCount: number;
+  threshold: number;
+  source: NonNullable<ParseOptions["source"]>;
 };
 
 export type ParseCallbacks = {
   onStatusChange?: (status: string, text: string) => void;
   onProgress?: (progress: number) => void;
   shouldCancel?: () => boolean;
+  confirmLargePdf?: (context: LargePdfConfirmContext) => Promise<boolean>;
 };
+
+const CANCEL_ERROR_CODE = "MINERU_PARSE_CANCELLED";
+const LARGE_PDF_PAGE_THRESHOLD = 50;
 
 /** 将 ParseCallbacks 适配为 ProgressLine 接口（供 importMarkdownToNote 使用） */
 function callbacksToProgressLine(
@@ -94,7 +107,7 @@ type ImportOptions = {
 
 function throwIfCancelled(shouldCancel?: () => boolean) {
   if (shouldCancel?.()) {
-    throw new Error("已取消");
+    throw createCancelledError();
   }
 }
 
@@ -125,19 +138,28 @@ export async function parseSelectedItem(options: ParseOptions = {}) {
       })
       .show();
 
-    await parseItem(item, pdfAttachment, options, {
-      onStatusChange: (_status, text) => {
-        progress?.changeLine({ text });
+    await parseItem(
+      item,
+      pdfAttachment,
+      { ...options, source: "manual" },
+      {
+        onStatusChange: (_status, text) => {
+          progress?.changeLine({ text });
+        },
+        onProgress: (value) => {
+          progress?.changeLine({ progress: value });
+        },
       },
-      onProgress: (value) => {
-        progress?.changeLine({ progress: value });
-      },
-    });
+    );
 
     progress.startCloseTimer?.(4000);
   } catch (error) {
-    const message =
-      error instanceof Error ? error.message : String(error || "未知错误");
+    const isCancelled = isCancelError(error);
+    const message = isCancelled
+      ? getString("status-cancelled-parse")
+      : error instanceof Error
+        ? error.message
+        : String(error || "未知错误");
     Zotero.debug(`[Mineru Parse] Error: ${error}`);
     if (progress) {
       progress.changeLine({ text: message, progress: 100 });
@@ -214,6 +236,10 @@ export async function parseItem(
     callbacks?.onProgress?.(100);
     return;
   }
+
+  throwIfCancelled(callbacks?.shouldCancel);
+  await confirmLargePdfBeforeUpload(item, pdfAttachment, options, callbacks);
+  throwIfCancelled(callbacks?.shouldCancel);
 
   const token = String(getPref("token") || "").trim();
   if (!token) {
@@ -605,7 +631,7 @@ async function pollBatchResult(
   const start = Date.now();
   while (Date.now() - start < prefs.poll_timeout_ms) {
     if (shouldCancel?.()) {
-      throw new Error("已取消");
+      throw createCancelledError();
     }
     const res = await fetchJson<MineruBatchResult>(
       `${API_BASE}/api/v4/extract-results/batch/${batchId}`,
@@ -669,6 +695,106 @@ async function pollBatchResult(
     await Zotero.Promise.delay(prefs.poll_interval_ms);
   }
   throw new Error("任务超时，请稍后重试");
+}
+
+function createCancelledError(): Error {
+  const error = new Error(getString("error-cancelled")) as Error & {
+    code?: string;
+  };
+  error.name = "CancelledError";
+  error.code = CANCEL_ERROR_CODE;
+  return error;
+}
+
+export function isCancelError(error: unknown): boolean {
+  if (error instanceof Error) {
+    const code = (error as Error & { code?: string }).code;
+    if (error.name === "CancelledError" || code === CANCEL_ERROR_CODE) {
+      return true;
+    }
+    return isCancelErrorMessage(error.message || "");
+  }
+  if (typeof error === "string") {
+    return isCancelErrorMessage(error);
+  }
+  return false;
+}
+
+export function isCancelErrorMessage(message: string): boolean {
+  const lower = String(message || "").toLowerCase();
+  return (
+    lower.includes("cancelled") ||
+    lower.includes("canceled") ||
+    message.includes("已取消")
+  );
+}
+
+async function confirmLargePdfBeforeUpload(
+  item: Zotero.Item,
+  pdfAttachment: Zotero.Item,
+  options: ParseOptions,
+  callbacks?: ParseCallbacks,
+): Promise<void> {
+  const pageCount = await getPdfPageCount(pdfAttachment);
+  if (!pageCount) {
+    Zotero.debug(
+      `[Mineru Parse] Page count unavailable for attachment ${pdfAttachment.id}; continue parsing`,
+    );
+    return;
+  }
+  if (pageCount <= LARGE_PDF_PAGE_THRESHOLD) {
+    return;
+  }
+
+  const source = options.source || "manual";
+  const context: LargePdfConfirmContext = {
+    item,
+    pdfAttachment,
+    pageCount,
+    threshold: LARGE_PDF_PAGE_THRESHOLD,
+    source,
+  };
+  const confirmed = callbacks?.confirmLargePdf
+    ? await callbacks.confirmLargePdf(context)
+    : defaultLargePdfConfirm(context);
+  if (!confirmed) {
+    throw createCancelledError();
+  }
+}
+
+async function getPdfPageCount(
+  pdfAttachment: Zotero.Item,
+): Promise<number | null> {
+  try {
+    const pageInfo = await Zotero.FullText.getPages(pdfAttachment.id);
+    const total = Number(pageInfo && (pageInfo as { total?: number }).total);
+    if (Number.isFinite(total) && total > 0) {
+      return Math.round(total);
+    }
+  } catch (error) {
+    Zotero.debug(
+      `[Mineru Parse] getPages failed for attachment ${pdfAttachment.id}: ${error}`,
+    );
+  }
+
+  const fieldValue = Number(pdfAttachment.getField("numPages"));
+  if (Number.isFinite(fieldValue) && fieldValue > 0) {
+    return Math.round(fieldValue);
+  }
+  return null;
+}
+
+function defaultLargePdfConfirm(context: LargePdfConfirmContext): boolean {
+  const title = getItemTitle(context.item);
+  const header = getString("large-pdf-confirm-title");
+  const body = getString("large-pdf-confirm-body", {
+    args: {
+      title,
+      pages: context.pageCount,
+      threshold: context.threshold,
+    },
+  });
+  return Zotero.getMainWindow().confirm(`${header}\n\n${body}`);
 }
 
 async function downloadFile(url: string) {

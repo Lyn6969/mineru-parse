@@ -1,4 +1,10 @@
-import { MINERU_NOTE_TAG, parseItem } from "../parse";
+import {
+  MINERU_NOTE_TAG,
+  getItemTitle,
+  isCancelError,
+  parseItem,
+} from "../parse";
+import { getString } from "../../utils/locale";
 import type { BatchTask } from "./types";
 
 type BatchQueueOptions = {
@@ -10,10 +16,13 @@ export class BatchQueue {
   private runningCount = 0;
   private stopRequested = false;
   private sessionID = 0;
+  private largePdfDecision: "unset" | "allow_all" | "deny_all" = "unset";
 
   constructor(private readonly options: BatchQueueOptions) {}
 
   start(tasks: BatchTask[]) {
+    // Reset large PDF decision for each new batch run
+    this.largePdfDecision = "unset";
     const sessionID = this.ensureSession();
     this.pump(tasks, sessionID);
   }
@@ -81,6 +90,7 @@ export class BatchQueue {
     this.stopRequested = true;
     this.sessionID += 1;
     this.runningCount = 0;
+    this.largePdfDecision = "unset";
   }
 
   private ensureSession(): number {
@@ -88,6 +98,7 @@ export class BatchQueue {
       this.stopRequested = false;
       this.sessionID += 1;
       this.runningCount = 0;
+      this.largePdfDecision = "unset";
     }
     return this.sessionID;
   }
@@ -135,7 +146,7 @@ export class BatchQueue {
       await parseItem(
         parentItem,
         pdfAttachment,
-        {},
+        { source: "batch" },
         {
           onStatusChange: (status, text) => {
             if (sessionID !== this.sessionID) return;
@@ -151,6 +162,33 @@ export class BatchQueue {
             sessionID !== this.sessionID ||
             this.stopRequested ||
             Boolean(task.cancelRequested),
+          confirmLargePdf: async ({ item, pageCount, threshold }) => {
+            if (
+              sessionID !== this.sessionID ||
+              this.stopRequested ||
+              task.cancelRequested
+            ) {
+              return false;
+            }
+            if (this.largePdfDecision === "allow_all") {
+              return true;
+            }
+            if (this.largePdfDecision === "deny_all") {
+              return false;
+            }
+
+            const confirmed = Zotero.getMainWindow().confirm(
+              getString("large-pdf-confirm-batch-body", {
+                args: {
+                  title: getItemTitle(item),
+                  pages: pageCount,
+                  threshold,
+                },
+              }),
+            );
+            this.largePdfDecision = confirmed ? "allow_all" : "deny_all";
+            return confirmed;
+          },
         },
       );
 
@@ -162,7 +200,7 @@ export class BatchQueue {
     } catch (error) {
       const message = normalizeErrorMessage(error);
       task.errorMessage = message;
-      if (isCancelError(message)) {
+      if (isCancelError(error)) {
         task.status = "stopped";
         task.statusText = "stopped";
       } else {
@@ -194,15 +232,6 @@ function normalizeErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message || "Unknown error";
   if (typeof error === "string") return error;
   return "Unknown error";
-}
-
-function isCancelError(message: string): boolean {
-  const lower = message.toLowerCase();
-  return (
-    message.includes("已取消") ||
-    lower.includes("canceled") ||
-    lower.includes("cancelled")
-  );
 }
 
 function findLatestMineruNote(parentItem: Zotero.Item): Zotero.Item | null {

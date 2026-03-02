@@ -1,6 +1,7 @@
 import { config } from "../../package.json";
+import { getString } from "../utils/locale";
 import { getPref } from "../utils/prefs";
-import { parseItem, hasExistingParsedNote } from "./parse";
+import { hasExistingParsedNote, isCancelError, parseItem } from "./parse";
 
 let observerID: string | false = false;
 const inFlightParents = new Set<number>();
@@ -83,7 +84,7 @@ async function startAutoParse(parent: Zotero.Item, pdfAttachment: Zotero.Item) {
     await parseItem(
       parent,
       pdfAttachment,
-      {},
+      { source: "auto" },
       {
         onStatusChange: (_status, text) => {
           progress.changeLine({ text: `${short} — ${text}` });
@@ -99,10 +100,15 @@ async function startAutoParse(parent: Zotero.Item, pdfAttachment: Zotero.Item) {
       progress: 100,
     });
   } catch (e) {
+    const cancelled = isCancelError(e);
     const msg = e instanceof Error ? e.message : String(e);
-    Zotero.debug(`[Mineru Parse] Auto-parse failed for "${title}": ${msg}`);
+    Zotero.debug(
+      `[Mineru Parse] Auto-parse ${cancelled ? "cancelled" : "failed"} for "${title}": ${msg}`,
+    );
     progress.changeLine({
-      text: localeText(`自动解析失败：${short}`, `Auto parse failed: ${short}`),
+      text: cancelled
+        ? getString("status-cancelled-auto")
+        : localeText(`自动解析失败：${short}`, `Auto parse failed: ${short}`),
       progress: 100,
     });
   }
