@@ -209,7 +209,3 @@ addon/
 ### License
 
 [AGPL-3.0-or-later](LICENSE)
-
----
-
-<a id="简体中文"></a>
