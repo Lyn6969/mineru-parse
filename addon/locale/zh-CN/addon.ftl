@@ -36,7 +36,6 @@ ai-error-timeout = 请求超时，请稍后重试
 ai-error-generic = AI 解读失败
 menuitem-import-parse = 导入 PDF 并解析
 menuitem-batch-window = Mineru：批量解析窗口
-menu-tools-batch-window = Mineru 批量解析窗口
 menu-translate = 翻译笔记
 translate-progress-title = 翻译
 translate-progress-requesting = 正在请求翻译...

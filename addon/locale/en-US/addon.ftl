@@ -36,7 +36,6 @@ ai-error-timeout = Request timed out. Please try again later
 ai-error-generic = AI analysis failed
 menuitem-import-parse = Import PDF & Parse
 menuitem-batch-window = Mineru: Batch Parse Window
-menu-tools-batch-window = Mineru Batch Parse Window
 menu-translate = Translate Note
 translate-progress-title = Translation
 translate-progress-requesting = Requesting translation...
