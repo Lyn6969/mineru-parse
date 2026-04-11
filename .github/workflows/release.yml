@@ -21,6 +21,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+      - name: Generate release notes from changelog
+        run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > .scaffold/build/release-notes.md
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -28,7 +30,7 @@ jobs:
             .scaffold/build/*.xpi
             .scaffold/build/update.json
             .scaffold/build/update-beta.json
-          generate_release_notes: true
+          body_path: .scaffold/build/release-notes.md
 
       # 将 update.json 上传到固定的 "release" tag，供插件 update_url 检查更新
       - name: Update release tag
