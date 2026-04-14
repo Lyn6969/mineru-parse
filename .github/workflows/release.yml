@@ -24,7 +24,7 @@ jobs:
       - name: Generate release notes from changelog
         run: node scripts/release-notes.mjs "$GITHUB_REF_NAME" > .scaffold/build/release-notes.md
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             .scaffold/build/*.xpi
@@ -38,7 +38,7 @@ jobs:
           git tag -f release
           git push -f origin release
       - name: Upload update manifest to release tag
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: release
           files: |
