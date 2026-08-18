@@ -210,9 +210,10 @@ function findMineruNote(parentItem: Zotero.Item): Zotero.Item | null {
 
   const mineruNotes = noteIDs
     .map((id) => Zotero.Items.get(id))
-    .filter(
-      (n): n is Zotero.Item => Boolean(n && n.isNote()) && hasMineruTag(n!),
-    );
+    .filter((n): n is Zotero.Item => {
+      if (!n) return false;
+      return n.isNote() && hasMineruTag(n);
+    });
 
   if (!mineruNotes.length) return null;
 

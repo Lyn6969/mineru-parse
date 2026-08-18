@@ -370,7 +370,7 @@ export async function getPdfAttachmentForItem(
   const attachments = item.getAttachments();
   for (const id of attachments) {
     const att = Zotero.Items.get(id);
-    if (att?.isAttachment() && att.isPDFAttachment()) {
+    if (att && att.isAttachment() && att.isPDFAttachment()) {
       return att;
     }
   }
@@ -1094,8 +1094,9 @@ export function hasExistingParsedNote(item: Zotero.Item): boolean {
   const noteIDs = item.getNotes();
   return noteIDs.some((id) => {
     const note = Zotero.Items.get(id);
+    if (!note) return false;
     return (
-      note?.isNote() && note.getTags().some((t) => t.tag === MINERU_NOTE_TAG)
+      note.isNote() && note.getTags().some((t) => t.tag === MINERU_NOTE_TAG)
     );
   });
 }
