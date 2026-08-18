@@ -4,7 +4,7 @@
 
 ### 简介
 
-Mineru Parse 是一个 Zotero 插件（支持 Zotero 7、8 和 9），通过 [MinerU](https://mineru.net) 云端解析服务，将 PDF 附件转换为结构化的 Zotero 笔记。它能自动提取 PDF 中的文本、公式、表格和图片，并借助 [Better Notes](https://github.com/windingwind/zotero-better-notes) 插件生成富文本笔记。
+Mineru Parse 是一个 Zotero 插件（支持 Zotero 7、8、9 和 10），通过 [MinerU](https://mineru.net) 云端解析服务，将 PDF 附件转换为结构化的 Zotero 笔记。它能自动提取 PDF 中的文本、公式、表格和图片，并借助 [Better Notes](https://github.com/windingwind/zotero-better-notes) 插件生成富文本笔记。
 
 ### 功能特性
 
@@ -22,8 +22,8 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7、8 和 9），通过 [Mi
 
 ### 前置要求
 
-1. **[Zotero 7、8 或 9](https://www.zotero.org/download/)**
-2. **[Better Notes](https://github.com/windingwind/zotero-better-notes)** 插件 — 用于 Markdown 转 HTML
+1. **[Zotero 7、8、9 或 10](https://www.zotero.org/download/)**
+2. **[Better Notes](https://github.com/windingwind/zotero-better-notes)** 插件 — 用于 Markdown 转 HTML。Zotero 10 用户请使用 Better Notes 3.2.6 或更高版本
 3. **MinerU API Token** — 在 [mineru.net](https://mineru.net) 注册获取
 
 ### 安装方法

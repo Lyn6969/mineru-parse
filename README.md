@@ -1,6 +1,6 @@
 # Mineru Parse
 
-[![Zotero 7 | 8 | 9](https://img.shields.io/badge/Zotero-7_|_8_|_9-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
+[![Zotero 7 | 8 | 9 | 10](https://img.shields.io/badge/Zotero-7_|_8_|_9_|_10-green?style=flat-square&logo=zotero&logoColor=CC2936)](https://www.zotero.org)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg?style=flat-square)](https://www.gnu.org/licenses/agpl-3.0)
 [![Using Zotero Plugin Template](https://img.shields.io/badge/Using-Zotero%20Plugin%20Template-blue?style=flat-square&logo=github)](https://github.com/windingwind/zotero-plugin-template)
 
@@ -14,7 +14,7 @@ English | [简体中文](./README.zh.md)
 
 ### What is Mineru Parse?
 
-Mineru Parse is a Zotero plugin (supports Zotero 7, 8, and 9) that converts PDF attachments into structured Zotero notes using the [MinerU](https://mineru.net) cloud parsing service. It automatically extracts text, formulas, tables, and images from PDFs and imports them as rich Zotero notes via [Better Notes](https://github.com/windingwind/zotero-better-notes).
+Mineru Parse is a Zotero plugin (supports Zotero 7, 8, 9, and 10) that converts PDF attachments into structured Zotero notes using the [MinerU](https://mineru.net) cloud parsing service. It automatically extracts text, formulas, tables, and images from PDFs and imports them as rich Zotero notes via [Better Notes](https://github.com/windingwind/zotero-better-notes).
 
 ### Features
 
@@ -32,8 +32,8 @@ Mineru Parse is a Zotero plugin (supports Zotero 7, 8, and 9) that converts PDF 
 
 ### Prerequisites
 
-1. **[Zotero 7 or 8](https://www.zotero.org/download/)** (version 6.999+)
-2. **[Better Notes](https://github.com/windingwind/zotero-better-notes)** plugin — required for Markdown-to-HTML conversion
+1. **[Zotero 7, 8, 9, or 10](https://www.zotero.org/download/)**
+2. **[Better Notes](https://github.com/windingwind/zotero-better-notes)** plugin — required for Markdown-to-HTML conversion. Zotero 10 users should use Better Notes 3.2.6 or later.
 3. **MinerU API Token** — register at [mineru.net](https://mineru.net) to obtain your token
 
 ### Installation
