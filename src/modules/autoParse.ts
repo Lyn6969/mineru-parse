@@ -28,7 +28,8 @@ export function registerAutoParseObserver() {
         for (const id of ids) {
           try {
             const item = Zotero.Items.get(id as number);
-            if (!item?.isAttachment() || !item.isPDFAttachment()) continue;
+            if (!item || !item.isAttachment() || !item.isPDFAttachment())
+              continue;
 
             const parent = item.parentItem;
             if (!parent?.isRegularItem()) continue;

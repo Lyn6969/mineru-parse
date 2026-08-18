@@ -139,7 +139,12 @@ export class BatchQueue {
     try {
       const parentItem = Zotero.Items.get(task.parentItemID);
       const pdfAttachment = Zotero.Items.get(task.pdfAttachmentID);
-      if (!parentItem?.isRegularItem() || !pdfAttachment?.isPDFAttachment()) {
+      if (
+        !parentItem ||
+        !pdfAttachment ||
+        !parentItem.isRegularItem() ||
+        !pdfAttachment.isPDFAttachment()
+      ) {
         throw new Error("invalid_task_item");
       }
 
@@ -238,11 +243,14 @@ function findLatestMineruNote(parentItem: Zotero.Item): Zotero.Item | null {
   const notes = parentItem
     .getNotes()
     .map((id) => Zotero.Items.get(id))
-    .filter(
-      (note): note is Zotero.Item =>
-        Boolean(note?.isNote()) &&
-        note!.getTags().some((tag) => tag.tag === MINERU_NOTE_TAG),
-    )
+    .filter((note): note is Zotero.Item => {
+      if (!note || !note.isNote()) return false;
+      return note
+        .getTags()
+        .some(
+          (tag: { tag: string; type?: number }) => tag.tag === MINERU_NOTE_TAG,
+        );
+    })
     .sort((a, b) => getModifiedTime(b) - getModifiedTime(a));
   return notes[0] || null;
 }
