@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+## v0.5.5 - 2026-08-18
+
+### Changed
+
+- 升级 `zotero-plugin-toolkit` 至 5.2.0，并迁移 `ZoteroToolkit` 至新的 `/ztoolkit` 导入路径。
+- 同步采用 Toolkit 5.2.0 的快捷键解析修复，并移除上游遗留的 Zotero 6 兼容代码。
+
+### Fixed
+
+- 增加对已删除或失效 Zotero 条目的安全检查，避免自动解析、批量队列和 AI 笔记查找访问无效条目。
+
 ## v0.5.4 - 2026-08-18
 
 ### Changed

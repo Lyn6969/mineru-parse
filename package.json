@@ -32,7 +32,7 @@
   "dependencies": {
     "fflate": "^0.8.2",
     "path-browserify": "^1.0.1",
-    "zotero-plugin-toolkit": "^5.1.2"
+    "zotero-plugin-toolkit": "^5.2.0"
   },
   "devDependencies": {
     "@types/chai": "^5.2.3",
