@@ -1,7 +1,7 @@
 import { config } from "../../package.json";
 import { FluentMessageId } from "../../typings/i10n";
 
-export { initLocale, getString };
+export { initLocale, getString, localeText };
 
 /**
  * Initialize locale data
@@ -58,6 +58,14 @@ function getString(...inputs: any[]) {
   } else {
     throw new Error("Invalid arguments");
   }
+}
+
+function localeText(zh: string, en: string): string {
+  return String(Zotero.locale || "")
+    .toLowerCase()
+    .startsWith("zh")
+    ? zh
+    : en;
 }
 
 interface Pattern {

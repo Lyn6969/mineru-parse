@@ -3,7 +3,7 @@ import { getPref } from "../../utils/prefs";
 import { MINERU_NOTE_TAG, parseSelectedItem } from "../parse";
 import { chatCompletion } from "./apiClient";
 import type { AIConfig, ChatMessage } from "./types";
-
+import { markdownToHtml, requireBetterNotes } from "./markdown";
 export async function translateNote(
   item: Zotero.Item,
   noteItem?: Zotero.Item,
@@ -31,6 +31,7 @@ export async function translateNote(
       showAlert(getString("translate-error-no-note"));
       return;
     }
+    requireBetterNotes();
 
     const baseUrl =
       String(getPref("ai.baseUrl") || "https://api.openai.com/v1").trim() ||
@@ -297,9 +298,4 @@ function stripHtml(html: string): string {
       .replace(/&#39;/gi, "'")
       .trim();
   }
-}
-
-async function markdownToHtml(md: string): Promise<string> {
-  const betterNotes = (Zotero as any).BetterNotes;
-  return (await betterNotes.api.convert.md2html(md)) as string;
 }

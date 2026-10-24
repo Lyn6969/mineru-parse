@@ -3,6 +3,8 @@ export type AIConfig = {
   apiKey: string;
   model: string;
   systemPrompt: string;
+  timeoutMs?: number;
+  signal?: AbortSignal;
 };
 
 export type ChatMessage = {

@@ -1,11 +1,8 @@
 /**
- * 高性能批量图片导入器
+ * Image importer with bounded parallel reads and safe result-directory paths.
  *
- * 路径处理与 Better Notes 保持一致（path-browserify + formatPath）
- * 性能优化：
- * 1. IOUtils.read 直接返回 Uint8Array（BN 用 getBinaryContentsAsync + 逐字节转换）
- * 2. 并行读取文件
- * 3. 单事务批量写入 + skipNotifier
+ * Images are read in batches and imported as Zotero attachments. Paths are
+ * normalized with path-browserify and must stay inside the MinerU result dir.
  */
 
 import pathBrowserify from "path-browserify";
@@ -62,15 +59,6 @@ function formatPath(p: string): string {
 }
 
 /**
- * 与 Better Notes 一致的路径拼接（path-browserify.join + formatPath）
- */
-function jointPath(...paths: string[]): string {
-  return formatPath(
-    pathBrowserify.join(...paths.map((p) => p.replace(/\\/g, "/"))),
-  );
-}
-
-/**
  * 从 HTML 中提取所有本地图片的 src
  */
 export function extractImagePathsFromHtml(html: string): string[] {
@@ -86,12 +74,30 @@ export function extractImagePathsFromHtml(html: string): string[] {
   return [...new Set(paths)];
 }
 
+function isAbsoluteImagePath(path: string): boolean {
+  const normalized = path.replace(/\\/g, "/");
+  return normalized.startsWith("/") || /^[a-zA-Z]:/.test(normalized);
+}
+
+function isWithinDirectory(root: string, candidate: string): boolean {
+  const normalizedRoot = pathBrowserify
+    .normalize(root.replace(/\\/g, "/"))
+    .replace(/\/+$/, "");
+  const normalizedCandidate = pathBrowserify.normalize(
+    candidate.replace(/\\/g, "/"),
+  );
+  const rootWithSeparator = normalizedRoot.endsWith("/")
+    ? normalizedRoot
+    : `${normalizedRoot}/`;
+  return (
+    normalizedCandidate !== normalizedRoot &&
+    normalizedCandidate.startsWith(rootWithSeparator)
+  );
+}
+
 /**
- * 准备图片导入任务
- * 路径解析逻辑与 BN processM2NRehypeImageNodes 一致：
- * 1. decodeURIComponent 解码
- * 2. formatPath 规范化
- * 3. 非绝对路径用 jointPath(fileDir, src) 拼接
+ * Build image import tasks only for relative paths that stay inside fileDir.
+ * Absolute paths and traversal outside the result directory are rejected.
  */
 export function prepareImageTasks(
   imageSrcs: string[],
@@ -99,7 +105,6 @@ export function prepareImageTasks(
 ): ImageTask[] {
   const tasks: ImageTask[] = [];
   for (const rawSrc of imageSrcs) {
-    // 与 BN 一致：先 decodeURIComponent
     let decoded: string;
     try {
       decoded = decodeURIComponent(rawSrc);
@@ -113,18 +118,21 @@ export function prepareImageTasks(
       continue;
     }
 
-    // 与 BN 一致：非绝对路径用 jointPath 拼接 fileDir
-    let absolutePath: string;
-    if (pathBrowserify.isAbsolute(decoded.replace(/\\/g, "/"))) {
-      absolutePath = formatPath(decoded);
-    } else {
-      absolutePath = jointPath(fileDir, decoded);
+    const normalizedDecoded = decoded.replace(/\\/g, "/");
+    if (isAbsoluteImagePath(normalizedDecoded)) {
+      continue;
+    }
+    const candidate = pathBrowserify.normalize(
+      pathBrowserify.join(fileDir.replace(/\\/g, "/"), normalizedDecoded),
+    );
+    if (!isWithinDirectory(fileDir, candidate)) {
+      continue;
     }
 
     tasks.push({
       src: rawSrc,
       decodedSrc: decoded,
-      absolutePath,
+      absolutePath: formatPath(candidate),
       mimeType: EXT_TO_MIME[ext] || "image/png",
     });
   }

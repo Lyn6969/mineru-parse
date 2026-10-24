@@ -82,12 +82,26 @@ function callbacksToProgressLine(
   };
 }
 
+type MineruContentOptions = {
+  model_version: string;
+  is_ocr: boolean;
+  enable_formula: boolean;
+  enable_table: boolean;
+  language: string;
+  page_ranges: string;
+};
+
+type MineruPrefs = MineruContentOptions & {
+  poll_interval_ms: number;
+  poll_timeout_ms: number;
+};
+
 type CacheMetadata = {
   itemKey: string;
   attachmentKey: string;
   attachmentSize?: number;
   attachmentMtime?: number;
-  modelVersion?: string;
+  options?: MineruContentOptions;
   mdPath: string;
   createdAt: number;
   dataId?: string;
@@ -209,7 +223,7 @@ export async function parseItem(
       attachmentKey: pdfAttachment.key,
       attachmentSize: Number.isFinite(fileSize) ? fileSize : undefined,
       attachmentMtime: fileStat.lastModified,
-      modelVersion: prefs.model_version,
+      options: getContentOptions(prefs),
     }));
 
   if (cacheHit) {
@@ -294,7 +308,7 @@ export async function parseItem(
     attachmentKey: pdfAttachment.key,
     attachmentSize: Number.isFinite(fileSize) ? fileSize : undefined,
     attachmentMtime: fileStat.lastModified,
-    modelVersion: prefs.model_version,
+    options: getContentOptions(prefs),
     mdPath,
     createdAt: Date.now(),
     dataId,
@@ -383,7 +397,6 @@ async function createItemNote(parentItem: Zotero.Item) {
   const noteItem = new Zotero.Item("note");
   noteItem.libraryID = parentItem.libraryID;
   noteItem.parentID = parentItem.id;
-  noteItem.addTag(MINERU_NOTE_TAG, 0);
   await noteItem.saveTx();
   return noteItem;
 }
@@ -530,6 +543,7 @@ async function importMarkdownToNote(
   noteItem.setNote(
     `${noteStatus.meta}${htmlContent}${noteStatus.tail || "</div>"}`,
   );
+  noteItem.addTag(MINERU_NOTE_TAG, 0);
   await noteItem.saveTx({
     notifierData: {
       autoSyncDelay: Zotero.Notes.AUTO_SYNC_DELAY,
@@ -550,7 +564,7 @@ function getImportStatusText(result: ImportResult) {
   });
 }
 
-function getMineruPrefs() {
+function getMineruPrefs(): MineruPrefs {
   return {
     model_version: String(getPref("model_version") || "pipeline"),
     is_ocr: Boolean(getPref("is_ocr")),
@@ -561,6 +575,32 @@ function getMineruPrefs() {
     poll_interval_ms: Number(getPref("poll_interval_ms") || 3000),
     poll_timeout_ms: Number(getPref("poll_timeout_ms") || 900000),
   };
+}
+
+function getContentOptions(prefs: MineruPrefs): MineruContentOptions {
+  return {
+    model_version: prefs.model_version,
+    is_ocr: prefs.is_ocr,
+    enable_formula: prefs.enable_formula,
+    enable_table: prefs.enable_table,
+    language: prefs.language,
+    page_ranges: prefs.page_ranges,
+  };
+}
+
+function isSameContentOptions(
+  cached: MineruContentOptions | undefined,
+  current: MineruContentOptions,
+): boolean {
+  return Boolean(
+    cached &&
+    cached.model_version === current.model_version &&
+    cached.is_ocr === current.is_ocr &&
+    cached.enable_formula === current.enable_formula &&
+    cached.enable_table === current.enable_table &&
+    cached.language === current.language &&
+    cached.page_ranges === current.page_ranges,
+  );
 }
 
 async function createUploadUrl(
@@ -926,7 +966,7 @@ async function findCachedMarkdown(info: {
   attachmentKey: string;
   attachmentSize?: number;
   attachmentMtime?: number;
-  modelVersion?: string;
+  options: MineruContentOptions;
 }) {
   const baseDir = await getCacheBaseDir();
   if (!(await IOUtils.exists(baseDir))) {
@@ -939,7 +979,6 @@ async function findCachedMarkdown(info: {
   const entries = await IOUtils.getChildren(baseDir).catch(() => []);
 
   for (const entry of entries) {
-    // 跳过非插件缓存目录，避免在临时目录中做无效 I/O
     if (!PathUtils.filename(entry).startsWith(cachePrefix)) {
       continue;
     }
@@ -950,35 +989,22 @@ async function findCachedMarkdown(info: {
     }
 
     const meta = await readCacheMetadata(entry);
-    if (meta) {
-      if (
-        meta.itemKey !== info.itemKey ||
-        meta.attachmentKey !== info.attachmentKey
-      ) {
-        continue;
-      }
-      if (!isSameAttachment(meta, info)) {
-        continue;
-      }
-      if (info.modelVersion && meta.modelVersion !== info.modelVersion) {
-        continue;
-      }
-      if (meta.mdPath && (await IOUtils.exists(meta.mdPath))) {
-        const score = meta.createdAt || stat.lastModified || 0;
-        if (score > bestScore) {
-          bestScore = score;
-          bestPath = meta.mdPath;
-        }
-      }
+    if (!meta) {
       continue;
     }
-
-    const fallback = await inferCachedMarkdown(entry, info);
-    if (fallback) {
-      const score = stat.lastModified || 0;
+    if (
+      meta.itemKey !== info.itemKey ||
+      meta.attachmentKey !== info.attachmentKey ||
+      !isSameAttachment(meta, info) ||
+      !isSameContentOptions(meta.options, info.options)
+    ) {
+      continue;
+    }
+    if (meta.mdPath && (await IOUtils.exists(meta.mdPath))) {
+      const score = meta.createdAt || stat.lastModified || 0;
       if (score > bestScore) {
         bestScore = score;
-        bestPath = fallback;
+        bestPath = meta.mdPath;
       }
     }
   }
@@ -1016,60 +1042,6 @@ function isSameAttachment(
     typeof info.attachmentMtime !== "number" ||
     meta.attachmentMtime === info.attachmentMtime;
   return sizeMatch && mtimeMatch;
-}
-
-async function inferCachedMarkdown(
-  dir: string,
-  info: {
-    itemKey: string;
-    attachmentSize?: number;
-    attachmentMtime?: number;
-  },
-) {
-  const dirName = PathUtils.filename(dir);
-  if (!dirName.startsWith(`${config.addonRef}-${info.itemKey}-`)) {
-    return "";
-  }
-
-  const children = await IOUtils.getChildren(dir).catch(() => []);
-  const originPdf = children.find((child) =>
-    child.toLowerCase().endsWith("_origin.pdf"),
-  );
-  if (originPdf && typeof info.attachmentSize === "number") {
-    const stat = await IOUtils.stat(originPdf).catch(() => null);
-    if (stat?.size && stat.size !== info.attachmentSize) {
-      return "";
-    }
-  }
-
-  const mdPath = await findMarkdownFile(dir);
-  return mdPath;
-}
-
-async function findMarkdownFile(rootDir: string) {
-  const mdCandidates: string[] = [];
-  const queue = [rootDir];
-  while (queue.length) {
-    const current = queue.pop();
-    if (!current) {
-      continue;
-    }
-    const children = await IOUtils.getChildren(current).catch(() => []);
-    for (const child of children) {
-      const stat = await IOUtils.stat(child).catch(() => null);
-      if (!stat) {
-        continue;
-      }
-      if (stat.type === "directory") {
-        queue.push(child);
-        continue;
-      }
-      if (child.toLowerCase().endsWith(".md")) {
-        mdCandidates.push(child);
-      }
-    }
-  }
-  return selectMarkdown(mdCandidates);
 }
 
 async function writeCacheMetadata(dir: string, meta: CacheMetadata) {

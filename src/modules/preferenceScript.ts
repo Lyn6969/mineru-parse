@@ -53,7 +53,7 @@ export async function registerPrefsScripts(_window: Window) {
 
 type PrefBinding = {
   id: string;
-  key: string;
+  key: keyof _ZoteroTypes.Prefs["PluginPrefsMap"];
   type: "text" | "number" | "checkbox" | "menulist";
   defaultValue?: string | number;
 };
@@ -152,18 +152,18 @@ function bindPrefEvents() {
     const el = doc.querySelector<HTMLElement>(`#${binding.id}`);
     if (!el) continue;
 
-    const current = getPref(binding.key as any);
+    const current = getPref(binding.key);
 
     if (binding.type === "checkbox") {
       (el as HTMLInputElement).checked = Boolean(current);
       el.addEventListener("command", () => {
-        setPref(binding.key as any, (el as HTMLInputElement).checked);
+        setPref(binding.key, (el as HTMLInputElement).checked);
       });
     } else if (binding.type === "menulist") {
       (el as any).value = String(current || binding.defaultValue || "");
       el.addEventListener("command", () => {
         setPref(
-          binding.key as any,
+          binding.key,
           String((el as any).value || binding.defaultValue || ""),
         );
       });
@@ -174,7 +174,7 @@ function bindPrefEvents() {
       el.addEventListener("change", () => {
         const value =
           Number((el as HTMLInputElement).value) || binding.defaultValue || 0;
-        setPref(binding.key as any, value);
+        setPref(binding.key, value);
         (el as HTMLInputElement).value = String(value);
       });
     } else {
@@ -183,7 +183,7 @@ function bindPrefEvents() {
       );
       el.addEventListener("change", () => {
         setPref(
-          binding.key as any,
+          binding.key,
           (el as HTMLInputElement).value.trim() ||
             String(binding.defaultValue || ""),
         );
@@ -194,97 +194,51 @@ function bindPrefEvents() {
 
 const MODIFIER_ONLY_KEYS = new Set(["Control", "Shift", "Alt", "Meta", "OS"]);
 
+const SHORTCUT_BINDINGS = [
+  {
+    inputId: "mineru-parse-shortcut",
+    clearId: "mineru-parse-shortcut-clear",
+    key: "shortcut_parse",
+  },
+  {
+    inputId: "mineru-parse-shortcut-import",
+    clearId: "mineru-parse-shortcut-import-clear",
+    key: "shortcut_import",
+  },
+  {
+    inputId: "mineru-parse-shortcut-ai",
+    clearId: "mineru-parse-shortcut-ai-clear",
+    key: "shortcut_ai",
+  },
+] as const;
+
 function bindShortcutInput() {
   const doc = addon.data.prefs?.window.document;
   if (!doc) return;
 
-  const input = doc.querySelector<HTMLInputElement>("#mineru-parse-shortcut");
-  const clearBtn = doc.querySelector<HTMLElement>(
-    "#mineru-parse-shortcut-clear",
-  );
-  if (!input) return;
+  for (const binding of SHORTCUT_BINDINGS) {
+    const input = doc.querySelector<HTMLInputElement>(`#${binding.inputId}`);
+    if (!input) continue;
+    const clearBtn = doc.querySelector<HTMLElement>(`#${binding.clearId}`);
 
-  // 初始化显示
-  const saved = getPref("shortcut_parse") as string;
-  if (saved) {
-    input.value = new KeyModifier(saved).getLocalized();
-  }
-
-  // 录入快捷键
-  input.addEventListener("keydown", (e: KeyboardEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (MODIFIER_ONLY_KEYS.has(e.key)) return;
-
-    const km = new KeyModifier(e);
-    const raw = km.getRaw();
-    setPref("shortcut_parse", raw);
-    input.value = km.getLocalized();
-  });
-
-  // 清除快捷键
-  clearBtn?.addEventListener("command", () => {
-    setPref("shortcut_parse", "");
-    input.value = "";
-  });
-
-  // Import shortcut
-  const importInput = doc.querySelector<HTMLInputElement>(
-    "#mineru-parse-shortcut-import",
-  );
-  const importClearBtn = doc.querySelector<HTMLElement>(
-    "#mineru-parse-shortcut-import-clear",
-  );
-
-  if (importInput) {
-    const savedImport = getPref("shortcut_import") as string;
-    if (savedImport) {
-      importInput.value = new KeyModifier(savedImport).getLocalized();
+    const saved = getPref(binding.key);
+    if (saved) {
+      input.value = new KeyModifier(saved).getLocalized();
     }
 
-    importInput.addEventListener("keydown", (e: KeyboardEvent) => {
+    input.addEventListener("keydown", (e: KeyboardEvent) => {
       e.preventDefault();
       e.stopPropagation();
       if (MODIFIER_ONLY_KEYS.has(e.key)) return;
 
       const km = new KeyModifier(e);
-      setPref("shortcut_import", km.getRaw());
-      importInput.value = km.getLocalized();
+      setPref(binding.key, km.getRaw());
+      input.value = km.getLocalized();
     });
 
-    importClearBtn?.addEventListener("command", () => {
-      setPref("shortcut_import", "");
-      importInput.value = "";
-    });
-  }
-
-  // AI shortcut
-  const aiInput = doc.querySelector<HTMLInputElement>(
-    "#mineru-parse-shortcut-ai",
-  );
-  const aiClearBtn = doc.querySelector<HTMLElement>(
-    "#mineru-parse-shortcut-ai-clear",
-  );
-
-  if (aiInput) {
-    const savedAI = getPref("shortcut_ai") as string;
-    if (savedAI) {
-      aiInput.value = new KeyModifier(savedAI).getLocalized();
-    }
-
-    aiInput.addEventListener("keydown", (e: KeyboardEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (MODIFIER_ONLY_KEYS.has(e.key)) return;
-
-      const km = new KeyModifier(e);
-      setPref("shortcut_ai", km.getRaw());
-      aiInput.value = km.getLocalized();
-    });
-
-    aiClearBtn?.addEventListener("command", () => {
-      setPref("shortcut_ai", "");
-      aiInput.value = "";
+    clearBtn?.addEventListener("command", () => {
+      setPref(binding.key, "");
+      input.value = "";
     });
   }
 }

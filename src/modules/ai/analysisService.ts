@@ -4,6 +4,7 @@ import { MINERU_NOTE_TAG, parseSelectedItem } from "../parse";
 import { chatCompletion } from "./apiClient";
 import { getItemMetadata, replaceTemplateVariables } from "./promptTemplate";
 import type { AIConfig, ChatMessage } from "./types";
+import { markdownToHtml, requireBetterNotes } from "./markdown";
 
 export async function analyzeWithAI(
   item: Zotero.Item,
@@ -34,6 +35,7 @@ export async function analyzeWithAI(
       showAlert(getString("ai-error-no-note"));
       return;
     }
+    requireBetterNotes();
 
     const baseUrl =
       String(getPref("ai.baseUrl") || "https://api.openai.com/v1").trim() ||
@@ -289,9 +291,4 @@ export function stripHtml(html: string): string {
       .replace(/&#39;/gi, "'")
       .trim();
   }
-}
-
-async function markdownToHtml(md: string): Promise<string> {
-  const betterNotes = (Zotero as any).BetterNotes;
-  return (await betterNotes.api.convert.md2html(md)) as string;
 }

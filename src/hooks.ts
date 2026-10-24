@@ -1,10 +1,6 @@
 import { registerPrefsScripts } from "./modules/preferenceScript";
 import { registerPrefsWindow } from "./modules/preferenceWindow";
-import {
-  registerItemMenu,
-  registerToolsMenu,
-  registerToolbarButton,
-} from "./modules/menu";
+import { registerItemMenu, registerToolsMenu } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import { importLatestPdfAndParse } from "./modules/importAndParse";
 import { openBatchParseWindow } from "./modules/batchParse/window";
@@ -14,8 +10,8 @@ import {
   unregisterAutoParseObserver,
 } from "./modules/autoParse";
 import { getString, initLocale } from "./utils/locale";
-import { createZToolkit } from "./utils/ztoolkit";
 import { getPref } from "./utils/prefs";
+import { dispatchSelectedItem } from "./utils/itemSelection";
 
 async function onStartup() {
   await Promise.all([
@@ -25,18 +21,17 @@ async function onStartup() {
   ]);
 
   initLocale();
-  registerPrefsWindow();
+  await registerPrefsWindow();
 
   await Promise.all(
     Zotero.getMainWindows().map((win) => onMainWindowLoad(win)),
   );
-
+  registerShortcut();
+  registerAutoParseObserver();
   addon.data.initialized = true;
 }
 
 async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
-  addon.data.ztoolkit = createZToolkit();
-
   (win as any).MozXULElement.insertFTLIfNeeded(
     `${addon.data.config.addonRef}-mainWindow.ftl`,
   );
@@ -54,9 +49,6 @@ async function onMainWindowLoad(win: _ZoteroTypes.MainWindow): Promise<void> {
 
   registerItemMenu(win);
   registerToolsMenu(win);
-  registerToolbarButton(win);
-  registerShortcut();
-  registerAutoParseObserver();
 
   popupWin.changeLine({
     progress: 100,
@@ -91,7 +83,7 @@ function registerShortcut() {
 }
 
 async function onMainWindowUnload(_win: Window): Promise<void> {
-  ztoolkit.unregisterAll();
+  // Window DOM is discarded with the window; plugin-wide cleanup runs on shutdown.
 }
 
 function onShutdown(): void {
@@ -122,35 +114,6 @@ async function onAnalyzeSelectedItem() {
 
 async function onOpenBatchParseWindow() {
   await openBatchParseWindow();
-}
-
-async function dispatchSelectedItem(
-  handler: (parent: Zotero.Item, note?: Zotero.Item) => Promise<void>,
-) {
-  const pane = Zotero.getActiveZoteroPane();
-  const selectedItems = pane?.getSelectedItems() || [];
-  const item = selectedItems[0];
-  if (!item) {
-    Zotero.getMainWindow().alert(getString("error-no-selection"));
-    return;
-  }
-
-  if (item.isNote() && item.parentItem) {
-    await handler(item.parentItem, item);
-    return;
-  }
-
-  if (item.isRegularItem()) {
-    await handler(item);
-    return;
-  }
-
-  if (item.isAttachment() && item.parentItem?.isRegularItem()) {
-    await handler(item.parentItem);
-    return;
-  }
-
-  Zotero.getMainWindow().alert(getString("error-no-selection"));
 }
 
 export default {

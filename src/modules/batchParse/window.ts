@@ -36,6 +36,9 @@ let activeFilter: BatchFilter = "all";
 let statsLoading = false;
 let statsData: BatchLibraryStats | null = null;
 let statsScanProgress: BatchStatsScanProgress | null = null;
+let statsScanPromise: Promise<void> | null = null;
+let statsScanLibraryID: number | undefined;
+let statsGeneration = 0;
 
 function safeRefreshBatchWindowUI() {
   const win = batchWindow;
@@ -102,12 +105,15 @@ function initializeBatchWindow(win: Window) {
     if (batchWindow !== win) return;
     queue.stopAll(tasks);
     queue.reset();
+    statsGeneration++;
+    statsScanPromise = null;
     if (isWindowAlive(statsWindow)) {
       statsWindow.close();
     }
     batchWindow = undefined;
     statsWindow = undefined;
     tableHelper = undefined;
+    tableSelection = undefined;
     tasks = [];
     filteredTasksCache = [];
     filteredTasksDirty = true;
@@ -167,7 +173,7 @@ function initConcurrency(win: Window) {
     const normalized = normalizeConcurrency(value);
     input.value = String(normalized);
     setPref("batch_parse_concurrency", normalized);
-    refreshUI();
+    queue.ensureRunning(tasks);
   });
 }
 
@@ -391,8 +397,7 @@ function createActionGroup(task: BatchTask, doc: Document): HTMLElement {
 
 function createStatusBadge(task: BatchTask, doc: Document): HTMLElement {
   const badge = doc.createElement("span");
-  const isStopping =
-    task.status === "running" && task.statusText === "stopping";
+  const isStopping = task.status === "running" && Boolean(task.cancelRequested);
   badge.className = `status-badge ${isStopping ? "is-stopping" : `is-${task.status}`}`;
   badge.textContent = getStatusDisplay(task);
   return badge;
@@ -440,12 +445,34 @@ function onStartSelected() {
 
 async function onAddSelected() {
   const result = await detectBatchTasksFromSelection(tasks);
-  if (result.tasks.length > 0) {
-    tasks.push(...result.tasks);
-    filteredTasksDirty = true;
-  }
+  const { added, duplicate } = appendUniqueTasks(result.tasks);
+  result.summary.added = added;
+  result.summary.skippedDuplicate += duplicate;
   refreshUI();
   showDetectSummary(result.summary);
+}
+
+function appendUniqueTasks(newTasks: BatchTask[]): {
+  added: number;
+  duplicate: number;
+} {
+  const existingParentIDs = new Set(tasks.map((task) => task.parentItemID));
+  let added = 0;
+  let duplicate = 0;
+  for (const task of newTasks) {
+    if (existingParentIDs.has(task.parentItemID)) {
+      duplicate++;
+      continue;
+    }
+    existingParentIDs.add(task.parentItemID);
+    tasks.push(task);
+    added++;
+  }
+  if (added) {
+    filteredTasksDirty = true;
+    queue.ensureRunning(tasks);
+  }
+  return { added, duplicate };
 }
 
 function showDetectSummary(summary: {
@@ -535,27 +562,51 @@ async function refreshStatsData() {
     getMessageWindow().alert(getString("batch-stats-error-no-library"));
     return;
   }
+  if (statsScanPromise && statsScanLibraryID === libraryID) {
+    return statsScanPromise;
+  }
 
+  const generation = ++statsGeneration;
+  statsScanLibraryID = libraryID;
   statsLoading = true;
   statsScanProgress = null;
   refreshStatsWindowUI();
   safeRefreshBatchWindowUI();
-  await Zotero.Promise.delay(0);
+
+  const scanPromise = (async () => {
+    await Zotero.Promise.delay(0);
+    try {
+      const data = await scanLibraryUnparsedStats(libraryID, (progress) => {
+        if (generation !== statsGeneration) return;
+        statsScanProgress = progress;
+        refreshStatsWindowUI();
+      });
+      if (generation === statsGeneration) {
+        statsData = data;
+      }
+    } catch (error) {
+      if (generation !== statsGeneration) return;
+      const message = error instanceof Error ? error.message : String(error);
+      getMessageWindow().alert(
+        `${getString("batch-stats-error-scan")}: ${message}`,
+      );
+    } finally {
+      if (generation === statsGeneration) {
+        statsLoading = false;
+        statsScanProgress = null;
+        refreshStatsWindowUI();
+        safeRefreshBatchWindowUI();
+      }
+    }
+  })();
+
+  statsScanPromise = scanPromise;
   try {
-    statsData = await scanLibraryUnparsedStats(libraryID, (progress) => {
-      statsScanProgress = progress;
-      refreshStatsWindowUI();
-    });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    getMessageWindow().alert(
-      `${getString("batch-stats-error-scan")}: ${message}`,
-    );
+    await scanPromise;
   } finally {
-    statsLoading = false;
-    statsScanProgress = null;
-    refreshStatsWindowUI();
-    safeRefreshBatchWindowUI();
+    if (statsScanPromise === scanPromise) {
+      statsScanPromise = null;
+    }
   }
 }
 
@@ -660,6 +711,7 @@ async function importCandidatesToQueue(candidates: UnparsedCandidate[]) {
     }
     const items = (await Zotero.Items.getAsync([...itemIDs])) as Zotero.Item[];
     const itemByID = new Map(items.map((item) => [item.id, item]));
+    const validTasks: BatchTask[] = [];
 
     for (const candidate of chunk) {
       if (existingParentIDs.has(candidate.parentItemID)) {
@@ -678,10 +730,13 @@ async function importCandidatesToQueue(candidates: UnparsedCandidate[]) {
         continue;
       }
 
-      tasks.push(createBatchTaskFromCandidate(candidate));
+      validTasks.push(createBatchTaskFromCandidate(candidate));
       existingParentIDs.add(candidate.parentItemID);
-      summary.added++;
     }
+
+    const { added, duplicate } = appendUniqueTasks(validTasks);
+    summary.added += added;
+    summary.skippedDuplicate += duplicate;
 
     await Zotero.Promise.delay(0);
   }
@@ -779,13 +834,29 @@ function refreshUI() {
   const win = batchWindow;
   if (!isWindowAlive(win)) return;
 
+  const selectedTaskIDs = getSelectedTasks().map((task) => task.id);
   filteredTasksDirty = true;
   updateHeader(win);
   updateFilterLabels(win);
   updateFilterState(win);
   updateButtons(win);
   tableHelper?.render();
+  restoreTaskSelection(selectedTaskIDs);
   updateEmptyState(win);
+}
+
+function restoreTaskSelection(selectedTaskIDs: string[]) {
+  const selection = tableHelper?.treeInstance?.selection;
+  if (!selection) return;
+
+  const selectedIDs = new Set(selectedTaskIDs);
+  const selectedIndices = getFilteredTasks().flatMap((task, index) =>
+    selectedIDs.has(task.id) ? [index] : [],
+  );
+  selection.selected = new Set(selectedIndices);
+  tableHelper?.treeInstance?.invalidate();
+  tableSelection = selection;
+  refreshSelectionUI();
 }
 
 function refreshSelectionUI() {
@@ -948,7 +1019,7 @@ function getFilterCounts() {
 }
 
 function getStatusDisplay(task: BatchTask): string {
-  if (task.status === "running" && task.statusText === "stopping") {
+  if (task.status === "running" && task.cancelRequested) {
     return getString("batch-status-stopping");
   }
   switch (task.status) {

@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { getString } from "../utils/locale";
+import { getString, localeText } from "../utils/locale";
 import { getPref } from "../utils/prefs";
 import { hasExistingParsedNote, isCancelError, parseItem } from "./parse";
 
@@ -40,8 +40,9 @@ export function registerAutoParseObserver() {
               continue;
             if (hasExistingParsedNote(parent)) continue;
 
-            // Fire and forget — each PDF parses independently
-            startAutoParse(parent, item);
+            void startAutoParse(parent, item).catch((error) => {
+              Zotero.debug(`[Mineru Parse] Auto-parse task error: ${error}`);
+            });
           } catch (e) {
             Zotero.debug(`[Mineru Parse] autoParse filter error: ${e}`);
           }
@@ -67,61 +68,56 @@ export function unregisterAutoParseObserver() {
 
 async function startAutoParse(parent: Zotero.Item, pdfAttachment: Zotero.Item) {
   inFlightParents.add(parent.id);
-  const title = String(parent.getField("title") || "");
-  const short = title.length > 30 ? title.slice(0, 30) + "…" : title;
-
-  const progress = new ztoolkit.ProgressWindow(config.addonName, {
-    closeOnClick: true,
-    closeTime: -1,
-  })
-    .createLine({
-      text: localeText(`自动解析：${short}`, `Auto parse: ${short}`),
-      type: "default",
-      progress: 0,
-    })
-    .show();
-
   try {
-    await parseItem(
-      parent,
-      pdfAttachment,
-      { source: "auto" },
-      {
-        onStatusChange: (_status, text) => {
-          progress.changeLine({ text: `${short} — ${text}` });
-        },
-        onProgress: (value) => {
-          progress.changeLine({ progress: value });
-        },
-      },
-    );
+    const title = String(parent.getField("title") || "");
+    const short = title.length > 30 ? title.slice(0, 30) + "…" : title;
 
-    progress.changeLine({
-      text: localeText(`自动解析完成：${short}`, `Auto parse done: ${short}`),
-      progress: 100,
-    });
-  } catch (e) {
-    const cancelled = isCancelError(e);
-    const msg = e instanceof Error ? e.message : String(e);
-    Zotero.debug(
-      `[Mineru Parse] Auto-parse ${cancelled ? "cancelled" : "failed"} for "${title}": ${msg}`,
-    );
-    progress.changeLine({
-      text: cancelled
-        ? getString("status-cancelled-auto")
-        : localeText(`自动解析失败：${short}`, `Auto parse failed: ${short}`),
-      progress: 100,
-    });
+    const progress = new ztoolkit.ProgressWindow(config.addonName, {
+      closeOnClick: true,
+      closeTime: -1,
+    })
+      .createLine({
+        text: localeText(`自动解析：${short}`, `Auto parse: ${short}`),
+        type: "default",
+        progress: 0,
+      })
+      .show();
+
+    try {
+      await parseItem(
+        parent,
+        pdfAttachment,
+        { source: "auto" },
+        {
+          onStatusChange: (_status, text) => {
+            progress.changeLine({ text: `${short} — ${text}` });
+          },
+          onProgress: (value) => {
+            progress.changeLine({ progress: value });
+          },
+        },
+      );
+
+      progress.changeLine({
+        text: localeText(`自动解析完成：${short}`, `Auto parse done: ${short}`),
+        progress: 100,
+      });
+    } catch (e) {
+      const cancelled = isCancelError(e);
+      const msg = e instanceof Error ? e.message : String(e);
+      Zotero.debug(
+        `[Mineru Parse] Auto-parse ${cancelled ? "cancelled" : "failed"} for "${title}": ${msg}`,
+      );
+      progress.changeLine({
+        text: cancelled
+          ? getString("status-cancelled-auto")
+          : localeText(`自动解析失败：${short}`, `Auto parse failed: ${short}`),
+        progress: 100,
+      });
+    }
+
+    progress.startCloseTimer?.(4000);
+  } finally {
+    inFlightParents.delete(parent.id);
   }
-
-  progress.startCloseTimer?.(4000);
-  inFlightParents.delete(parent.id);
-}
-
-function localeText(zh: string, en: string): string {
-  return String(Zotero.locale || "")
-    .toLowerCase()
-    .startsWith("zh")
-    ? zh
-    : en;
 }

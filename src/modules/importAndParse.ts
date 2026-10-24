@@ -1,5 +1,5 @@
 import { config } from "../../package.json";
-import { getString } from "../utils/locale";
+import { getString, localeText } from "../utils/locale";
 import { getPref } from "../utils/prefs";
 import { isCancelError, parseItem } from "./parse";
 import { suppressAutoParse, unsuppressAutoParse } from "./autoParse";
@@ -162,14 +162,6 @@ export async function importLatestPdfAndParse() {
   }
 
   progress.startCloseTimer?.(4000);
-}
-
-function localeText(zh: string, en: string): string {
-  return String(Zotero.locale || "")
-    .toLowerCase()
-    .startsWith("zh")
-    ? zh
-    : en;
 }
 
 async function removeImportedSourcePdf(filePath: string): Promise<void> {
