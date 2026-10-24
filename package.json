@@ -43,7 +43,7 @@
     "chai": "^6.2.2",
     "eslint": "^9.39.5",
     "mocha": "^11.7.5",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.6",
     "typescript": "^5.9.3",
     "zotero-plugin-scaffold": "^0.8.8",
     "zotero-types": "^4.1.3"
