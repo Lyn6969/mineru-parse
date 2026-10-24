@@ -1,8 +1,5 @@
 import { config } from "../../package.json";
 import { getString } from "../utils/locale";
-import { analyzeWithAI } from "./ai/analysisService";
-import { translateNote } from "./ai/translateService";
-import { dispatchSelectedItem } from "../utils/itemSelection";
 
 const menuIcon = `chrome://${config.addonRef}/content/icons/favicon@0.5x.png`;
 const menuIconAttributes = {
@@ -68,42 +65,6 @@ export function registerItemMenu(win: Window) {
                   type: "command",
                   listener: () => {
                     addon.hooks.onParseSelectedItem({ force: true });
-                  },
-                },
-              ],
-            },
-            {
-              tag: "menuitem",
-              id: `${config.addonRef}-itemmenu-ai-analyze`,
-              namespace: "xul",
-              classList: ["menuitem-iconic"],
-              attributes: {
-                label: getString("menu-ai-analyze"),
-                ...menuIconAttributes,
-              },
-              listeners: [
-                {
-                  type: "command",
-                  listener: () => {
-                    dispatchSelectedItem(analyzeWithAI);
-                  },
-                },
-              ],
-            },
-            {
-              tag: "menuitem",
-              id: `${config.addonRef}-itemmenu-translate`,
-              namespace: "xul",
-              classList: ["menuitem-iconic"],
-              attributes: {
-                label: getString("menu-translate"),
-                ...menuIconAttributes,
-              },
-              listeners: [
-                {
-                  type: "command",
-                  listener: () => {
-                    dispatchSelectedItem(translateNote);
                   },
                 },
               ],

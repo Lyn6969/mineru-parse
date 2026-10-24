@@ -60,6 +60,20 @@ describe("Zotero 11 compatibility", function () {
     assert.include(item.style.getPropertyValue("--menuitem-icon"), icon);
   });
 
+  it("keeps MinerU menu actions and removes AI actions", function () {
+    const doc = Zotero.getMainWindow().document;
+    for (const id of [
+      "itemmenu-parse",
+      "itemmenu-parse-force",
+      "itemmenu-import-parse",
+      "itemmenu-batch-window",
+    ]) {
+      assert.exists(doc.getElementById(`${config.addonRef}-${id}`));
+    }
+    assert.isNull(doc.getElementById(`${config.addonRef}-itemmenu-ai-analyze`));
+    assert.isNull(doc.getElementById(`${config.addonRef}-itemmenu-translate`));
+  });
+
   it("opens batch windows with the external bootstrap script", async function () {
     await getAddon().hooks.onOpenBatchParseWindow();
 
@@ -143,6 +157,34 @@ describe("Zotero 11 compatibility", function () {
         `zotero-prefpane-${config.addonRef}`,
       ),
     );
+    for (const id of [
+      "mineru-parse-token",
+      "mineru-parse-auto-parse",
+      "mineru-parse-model-version",
+      "mineru-parse-is-ocr",
+      "mineru-parse-enable-formula",
+      "mineru-parse-enable-table",
+      "mineru-parse-language",
+      "mineru-parse-page-ranges",
+      "mineru-parse-cache-dir",
+      "mineru-parse-poll-interval",
+      "mineru-parse-poll-timeout",
+      "mineru-parse-import-folder",
+      "mineru-parse-shortcut",
+      "mineru-parse-shortcut-clear",
+      "mineru-parse-shortcut-import",
+      "mineru-parse-shortcut-import-clear",
+    ]) {
+      assert.exists(initializedPrefs.document.getElementById(id));
+    }
+
+    for (const id of [
+      "mineru-parse-ai-base-url",
+      "mineru-parse-translate-model",
+      "mineru-parse-shortcut-ai",
+    ]) {
+      assert.isNull(initializedPrefs.document.getElementById(id));
+    }
 
     win.close();
   });

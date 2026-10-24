@@ -27,33 +27,9 @@ status-cancelled-parse = Parsing cancelled
 status-cancelled-auto = Auto parse cancelled
 status-images-pending =
     Images not imported ({ $count })
-menu-ai-analyze = AI Analyze
-ai-progress-title = AI Analysis
-ai-progress-requesting = Requesting AI analysis...
-ai-progress-receiving = Receiving AI response...
-ai-progress-saving = Saving analysis result...
-ai-progress-done = AI analysis complete
-ai-error-no-note = This item has no note. Please parse the PDF first
-ai-error-no-parsed-note = No Mineru parsed note found. Please right-click and run "Mineru: Parse PDF to Note" first
-ai-error-no-apikey = Please configure the AI API key in preferences first
-ai-error-network = Unable to connect to the AI service. Check the API URL
-ai-error-auth = API key is invalid or expired
-ai-error-ratelimit = Request rate limit exceeded. Please try again later
-ai-error-timeout = Request timed out. Please try again later
-ai-error-generic = AI analysis failed
+
 menuitem-import-parse = Import PDF & Parse
 menuitem-batch-window = Mineru: Batch Parse Window
-menu-translate = Translate Note
-translate-progress-title = Translation
-translate-progress-requesting = Requesting translation...
-translate-progress-receiving = Receiving translation...
-translate-progress-saving = Saving translation...
-translate-progress-done = Translation complete
-translate-error-no-note = No parsed note found. Please parse the PDF first
-translate-error-generic = Translation failed
-translate-note-heading = Translation
-translate-note-model = Model
-translate-note-time = Time
 
 batch-window-title = Batch Parse Papers
 batch-action-add = + Add Selected Items
@@ -91,7 +67,7 @@ batch-op-open-note = Open Note
 batch-add-summary =
     Added { $added } task(s)
     Skipped: no PDF { $noPdf }, parsed { $parsed }, duplicate { $duplicate }, invalid { $invalid }
-batch-stats-title = Library AI Parse Stats
+batch-stats-title = Library Parse Stats
 batch-stats-refresh = Refresh
 batch-stats-close = Close
 batch-stats-loading = Scanning library items...

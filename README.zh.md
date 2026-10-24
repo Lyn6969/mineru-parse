@@ -4,7 +4,7 @@
 
 ### 简介
 
-Mineru Parse 是一个 Zotero 插件（支持 Zotero 7–10 和 Zotero 11 beta），通过 [MinerU](https://mineru.net) 云端解析服务，将 PDF 附件转换为结构化的 Zotero 笔记。它能自动提取 PDF 中的文本、公式、表格和图片，并借助 [Better Notes](https://github.com/windingwind/zotero-better-notes) 插件生成富文本笔记。
+Mineru Parse 是一个专注于 MinerU 云端解析与笔记写回的轻量级 Zotero 插件。它只做一件事：把 PDF 附件上传到 [MinerU](https://mineru.net) 解析，再将提取出的文本、公式、表格和图片通过 [Better Notes](https://github.com/windingwind/zotero-better-notes) 写成结构化 Zotero 笔记。
 
 ### 功能特性
 
@@ -12,7 +12,6 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7–10 和 Zotero 11 beta�
 - **自动解析** — 当条目添加 PDF 附件时自动触发解析
 - **导入并解析** — 从配置的文件夹中导入最新 PDF 并自动解析
 - **批量解析窗口** — 打开独立任务窗口，检测未解析文献并执行批量解析
-- **AI 解读** — 将解析笔记发送给大模型进行智能分析解读；无解析笔记时自动触发全文解析；内置 5 个提示词预设模板，支持编辑、新建、删除
 - **全内容提取** — 支持文本、数学公式、表格和图片
 - **智能缓存** — 解析结果本地缓存，避免重复调用 API
 - **批量图片导入** — 高性能并行读取和嵌入图片
@@ -49,7 +48,6 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7–10 和 Zotero 11 beta�
 | **Mineru：强制重新解析**    | 忽略缓存，重新上传 PDF 进行解析                |
 | **Mineru：导入并解析 PDF**  | 从配置的文件夹导入最新 PDF 并自动解析          |
 | **Mineru：批量解析窗口**    | 打开批量任务窗口，检测未解析条目并批量执行解析 |
-| **AI 解读**                 | 将解析笔记发送给大模型分析；无笔记时自动先解析 |
 
 #### 工具菜单
 
@@ -116,16 +114,6 @@ Mineru Parse 是一个 Zotero 插件（支持 Zotero 7–10 和 Zotero 11 beta�
 | **导入快捷键** | `Ctrl+Shift+M`     | 触发导入并解析的键盘快捷键                            |
 | **导入文件夹** | _（空）_           | 导入 PDF 的文件夹路径                                 |
 
-#### AI 解读设置
-
-| 选项           | 默认值                      | 说明                                                                                                         |
-| -------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| **API 地址**   | `https://api.openai.com/v1` | OpenAI 兼容的 API 端点                                                                                       |
-| **API 密钥**   | _（空）_                    | 大模型服务的 API 密钥（使用 AI 解读前必填）                                                                  |
-| **模型**       | `gpt-4o`                    | 使用的模型名称                                                                                               |
-| **系统提示词** | _（默认）_                  | 自定义系统提示词，支持 `{{title}}`、`{{authors}}` 等变量                                                     |
-| **预设模板**   | 5 个内置                    | 可选择预设提示词模板（通用解读、方法论精读、文献综述、通俗摘要、批判性评读）；支持编辑、新建、删除和恢复默认 |
-
 ### 文件大小限制
 
 不支持超过 **200 MB** 的 PDF 文件。
@@ -164,11 +152,6 @@ src/
 │   ├── imageImporter.ts        # 批量图片导入（并行 I/O）
 │   ├── batchParse/             # 批量解析窗口与队列调度
 │   ├── menu.ts                 # 右键菜单与工具菜单注册
-│   ├── ai/                     # AI 解读模块
-│   │   ├── types.ts            # 类型定义
-│   │   ├── apiClient.ts        # OpenAI 兼容 API 客户端（SSE 流式）
-│   │   ├── promptTemplate.ts   # 提示词模板变量替换
-│   │   └── analysisService.ts  # 分析主流程
 │   ├── preferenceScript.ts     # 偏好设置事件绑定
 │   └── preferenceWindow.ts     # 偏好设置面板注册
 └── utils/

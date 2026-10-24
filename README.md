@@ -14,7 +14,7 @@ English | [简体中文](./README.zh.md)
 
 ### What is Mineru Parse?
 
-Mineru Parse is a Zotero plugin (supports Zotero 7–10 and Zotero 11 beta) that converts PDF attachments into structured Zotero notes using the [MinerU](https://mineru.net) cloud parsing service. It automatically extracts text, formulas, tables, and images from PDFs and imports them as rich Zotero notes via [Better Notes](https://github.com/windingwind/zotero-better-notes).
+Mineru Parse is a lightweight Zotero plugin focused on MinerU cloud parsing and writing structured notes. It uploads PDF attachments to [MinerU](https://mineru.net), then converts the parsed text, formulas, tables, and images into rich Zotero notes via [Better Notes](https://github.com/windingwind/zotero-better-notes).
 
 ### Features
 
@@ -22,7 +22,6 @@ Mineru Parse is a Zotero plugin (supports Zotero 7–10 and Zotero 11 beta) that
 - **Auto Parse** — Automatically parse PDF when new attachments are added to items
 - **Import & Parse** — Import the latest PDF from a configured folder and auto-parse it
 - **Batch Parse Window** — Open a dedicated window to detect unparsed selected papers and parse them in queue
-- **AI Analysis** — Send parsed notes to an LLM for intelligent analysis and interpretation; automatically triggers PDF parsing if no parsed note exists; includes 5 built-in prompt templates with full customization (edit, create, delete)
 - **Full content extraction** — Text, mathematical formulas, tables, and images
 - **Smart caching** — Parsed results are cached locally to avoid redundant API calls
 - **Batch image import** — High-performance parallel image reading and embedding
@@ -53,13 +52,12 @@ Mineru Parse is a Zotero plugin (supports Zotero 7–10 and Zotero 11 beta) that
 
 #### Right-click Menu
 
-| Menu Item                      | Description                                                                              |
-| ------------------------------ | ---------------------------------------------------------------------------------------- |
-| **Mineru: Parse PDF to Note**  | Parse the PDF and create a note. Uses cached result if available                         |
-| **Mineru: Force Re-parse**     | Ignore cache and re-upload the PDF for fresh parsing                                     |
-| **Mineru: Import & Parse PDF** | Import the latest PDF from configured folder and auto-parse it                           |
-| **Mineru: Batch Parse Window** | Open the batch task window, detect unparsed selected items, then run batch parse         |
-| **AI Analyze**                 | Send the parsed note to an LLM for analysis; auto-triggers parsing if no note exists yet |
+| Menu Item                      | Description                                                                      |
+| ------------------------------ | -------------------------------------------------------------------------------- |
+| **Mineru: Parse PDF to Note**  | Parse the PDF and create a note. Uses cached result if available                 |
+| **Mineru: Force Re-parse**     | Ignore cache and re-upload the PDF for fresh parsing                             |
+| **Mineru: Import & Parse PDF** | Import the latest PDF from configured folder and auto-parse it                   |
+| **Mineru: Batch Parse Window** | Open the batch task window, detect unparsed selected items, then run batch parse |
 
 #### Tools Menu
 
@@ -124,18 +122,7 @@ Import the latest PDF from a configured folder and automatically parse it.
 | **Auto Parse**      | On              | Automatically parse PDF when new attachments are added                                |
 | **Parse Shortcut**  | `Ctrl+M`        | Keyboard shortcut to trigger PDF parsing                                              |
 | **Import Shortcut** | `Ctrl+Shift+M`  | Keyboard shortcut to import and parse PDF                                             |
-| **AI Shortcut**     | `Ctrl+Shift+A`  | Keyboard shortcut to trigger AI analysis for selected item                            |
 | **Import Folder**   | _(empty)_       | Folder path to import PDFs from                                                       |
-
-#### AI Analysis Settings
-
-| Setting              | Default                     | Description                                                                                                                                                    |
-| -------------------- | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **API URL**          | `https://api.openai.com/v1` | OpenAI-compatible API endpoint                                                                                                                                 |
-| **API Key**          | _(empty)_                   | API key for the LLM service (required for AI analysis)                                                                                                         |
-| **Model**            | `gpt-4o`                    | Model name to use                                                                                                                                              |
-| **System Prompt**    | _(default)_                 | Custom system prompt; supports `{{title}}`, `{{authors}}`, etc.                                                                                                |
-| **Preset Templates** | 5 built-in                  | Choose from preset prompt templates (General, Method, Literature Review, Plain Summary, Critical Review); supports edit, create, delete, and reset to defaults |
 
 ### File Size Limit
 
@@ -175,11 +162,6 @@ src/
 │   ├── imageImporter.ts        # Batch image import with parallel I/O
 │   ├── batchParse/             # Batch parse window and queue orchestration
 │   ├── menu.ts                 # Right-click context menu & Tools menu
-│   ├── ai/                     # AI analysis module
-│   │   ├── types.ts            # Type definitions
-│   │   ├── apiClient.ts        # OpenAI-compatible API client (SSE streaming)
-│   │   ├── promptTemplate.ts   # Prompt template with variable substitution
-│   │   └── analysisService.ts  # Analysis orchestration
 │   ├── preferenceScript.ts     # Preference panel event binding
 │   └── preferenceWindow.ts     # Preference pane registration
 └── utils/

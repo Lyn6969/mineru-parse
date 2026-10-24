@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Removed
+
+- 移除 AI 解读、翻译、OpenAI 配置、提示词模板及对应菜单和快捷键，插件现仅聚焦 MinerU 上传解析与笔记写回。
+
 ## v0.6.0-beta.1 - 2026-10-24
 
 ### Changed

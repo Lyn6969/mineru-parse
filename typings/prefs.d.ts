@@ -21,16 +21,7 @@ declare namespace _ZoteroTypes {
       "batch_parse_concurrency": number;
       "shortcut_parse": string;
       "shortcut_import": string;
-      "shortcut_ai": string;
       "import_folder": string;
-      "ai.baseUrl": string;
-      "ai.apiKey": string;
-      "ai.model": string;
-      "ai.systemPrompt": string;
-      "ai.promptTemplates": string;
-      "translate.model": string;
-      "translate.targetLang": string;
-      "translate.systemPrompt": string;
     };
   }
 }

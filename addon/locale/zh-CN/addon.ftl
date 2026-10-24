@@ -27,33 +27,9 @@ status-cancelled-parse = 已取消解析
 status-cancelled-auto = 自动解析已取消
 status-images-pending =
     仍有图片未导入（{ $count }）
-menu-ai-analyze = AI 解读
-ai-progress-title = AI 解读
-ai-progress-requesting = 正在请求 AI 分析...
-ai-progress-receiving = 正在接收 AI 响应...
-ai-progress-saving = 正在保存解读结果...
-ai-progress-done = AI 解读完成
-ai-error-no-note = 该条目没有笔记，请先解析 PDF
-ai-error-no-parsed-note = 未找到 Mineru 解析笔记，请先右键运行「Mineru：解析 PDF 到笔记」
-ai-error-no-apikey = 请先在偏好设置中配置 AI API 密钥
-ai-error-network = 无法连接到 AI 服务，请检查 API 地址
-ai-error-auth = API 密钥无效或已过期
-ai-error-ratelimit = 请求频率过高，请稍后重试
-ai-error-timeout = 请求超时，请稍后重试
-ai-error-generic = AI 解读失败
+
 menuitem-import-parse = 导入 PDF 并解析
 menuitem-batch-window = Mineru：批量解析窗口
-menu-translate = 翻译笔记
-translate-progress-title = 翻译
-translate-progress-requesting = 正在请求翻译...
-translate-progress-receiving = 正在接收翻译结果...
-translate-progress-saving = 正在保存翻译结果...
-translate-progress-done = 翻译完成
-translate-error-no-note = 该条目没有解析笔记，请先解析 PDF
-translate-error-generic = 翻译失败
-translate-note-heading = 翻译
-translate-note-model = 模型
-translate-note-time = 时间
 
 batch-window-title = 批量解析文献
 batch-action-add = ＋ 添加选中文献
@@ -91,16 +67,16 @@ batch-op-open-note = 查看笔记
 batch-add-summary =
     新增任务 { $added } 条
     跳过：无 PDF { $noPdf }，已解析 { $parsed }，重复 { $duplicate }，无效 { $invalid }
-batch-stats-title = 全库 AI 解读统计
+batch-stats-title = 全库文献解析统计
 batch-stats-refresh = 刷新
 batch-stats-close = 关闭
 batch-stats-loading = 正在扫描文库条目...
 batch-stats-loading-progress = 正在扫描文库条目...（已处理 { $processed }/{ $total }，常规条目 { $scanned }）
-batch-stats-overall-label = 已解读文献 / 文献总数
-batch-stats-import-all = 导入全部未解读条目
-batch-stats-import-unparsed = 导入未解读
-batch-stats-item-count = { $parsed } 已解读 · { $unparsed } 未解读
-batch-stats-footnote = 共扫描 { $scanned } 个条目，耗时 { $duration } 秒，点击左侧图标可导入该分类未解读文献
+batch-stats-overall-label = 已解析文献 / 文献总数
+batch-stats-import-all = 导入全部未解析条目
+batch-stats-import-unparsed = 导入未解析
+batch-stats-item-count = { $parsed } 已解析 · { $unparsed } 未解析
+batch-stats-footnote = 共扫描 { $scanned } 个条目，耗时 { $duration } 秒，点击左侧图标可导入该分类未解析文献
 batch-stats-error-no-library = 无法识别当前文库
 batch-stats-error-scan = 扫描未解析条目失败
 batch-import-summary =

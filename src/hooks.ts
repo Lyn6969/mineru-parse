@@ -4,14 +4,12 @@ import { registerItemMenu, registerToolsMenu } from "./modules/menu";
 import { parseSelectedItem } from "./modules/parse";
 import { importLatestPdfAndParse } from "./modules/importAndParse";
 import { openBatchParseWindow } from "./modules/batchParse/window";
-import { analyzeWithAI } from "./modules/ai/analysisService";
 import {
   registerAutoParseObserver,
   unregisterAutoParseObserver,
 } from "./modules/autoParse";
 import { getString, initLocale } from "./utils/locale";
 import { getPref } from "./utils/prefs";
-import { dispatchSelectedItem } from "./utils/itemSelection";
 
 async function onStartup() {
   await Promise.all([
@@ -73,12 +71,6 @@ function registerShortcut() {
       addon.hooks.onImportAndParse();
       return;
     }
-
-    const aiKey = getPref("shortcut_ai") as string;
-    if (aiKey && keyboard.equals(aiKey)) {
-      event.preventDefault();
-      addon.hooks.onAnalyzeSelectedItem();
-    }
   });
 }
 
@@ -108,10 +100,6 @@ async function onImportAndParse() {
   await importLatestPdfAndParse();
 }
 
-async function onAnalyzeSelectedItem() {
-  await dispatchSelectedItem(analyzeWithAI);
-}
-
 async function onOpenBatchParseWindow() {
   await openBatchParseWindow();
 }
@@ -124,6 +112,5 @@ export default {
   onPrefsEvent,
   onParseSelectedItem,
   onImportAndParse,
-  onAnalyzeSelectedItem,
   onOpenBatchParseWindow,
 };
