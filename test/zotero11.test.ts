@@ -15,13 +15,6 @@ type AddonGlobal = {
   };
 };
 
-type PreferencesWindow = Window & {
-  Zotero_Preferences: {
-    waitForFirstPaneLoad(): Promise<void>;
-    waitForPaneSelect(): Promise<void>;
-  };
-};
-
 function getAddon(): AddonGlobal {
   // Zotero's plugin registry is keyed dynamically by the manifest instance name.
   return (Zotero as unknown as Record<string, AddonGlobal>)[
@@ -138,13 +131,8 @@ describe("Zotero 11 compatibility", function () {
       throw new Error("Preferences window was not opened");
     }
     // openDialog() returns before the preferences document has initialized.
-    await waitUntil(
-      () => Boolean((win as unknown as PreferencesWindow).Zotero_Preferences),
-      5_000,
-    );
-    const prefsWin = win as unknown as PreferencesWindow;
-    await prefsWin.Zotero_Preferences.waitForFirstPaneLoad();
-    await prefsWin.Zotero_Preferences.waitForPaneSelect();
+    await waitUntil(() => Object.hasOwn(win, "Zotero_Preferences"), 5_000);
+    await waitUntil(() => Boolean(getAddon().data.prefs?.window), 10_000);
 
     const initializedPrefs = getAddon().data.prefs?.window;
     if (!initializedPrefs) {
