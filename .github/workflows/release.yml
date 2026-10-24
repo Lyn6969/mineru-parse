@@ -31,6 +31,7 @@ jobs:
             .scaffold/build/update.json
             .scaffold/build/update-beta.json
           body_path: .scaffold/build/release-notes.md
+          prerelease: ${{ contains(github.ref_name, '-') }}
 
       # 将 update.json 上传到固定的 "release" tag，供插件 update_url 检查更新
       - name: Update release tag

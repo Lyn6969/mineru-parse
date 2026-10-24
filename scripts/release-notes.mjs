@@ -19,7 +19,9 @@ function extractReleaseNotes(changelog, targetTag) {
   let end = lines.length;
 
   for (let i = 0; i < lines.length; i += 1) {
-    const headingMatch = lines[i].match(/^##\s+\[?(v?\d+\.\d+\.\d+)\]?\b/);
+    const headingMatch = lines[i].match(
+      /^##\s+\[?(v?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\]?\b/,
+    );
     if (!headingMatch) continue;
     if (normalizeTag(headingMatch[1]) !== targetTag) continue;
     start = i + 1;
